@@ -8,6 +8,7 @@
 #ifndef HARDWARE_TMS320F2806_HH_
 #define HARDWARE_TMS320F2806_HH_
 #include "../common/DSP28x_Project.h"
+#include "../Util/memCopy.h"
 #include "../Peripherial Drivers/osc.h"
 #include "../Peripherial Drivers/wdog.h"
 #include "../Peripherial Drivers/clk.h"

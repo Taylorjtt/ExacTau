@@ -9,6 +9,8 @@
 
 TMS320F2806::TMS320F2806(void)
 {
+	//copy fast-access functions to RAM
+	memCopy((uint16_t *)&RamfuncsLoadStart,(uint16_t *)&RamfuncsLoadEnd,(uint16_t *)&RamfuncsRunStart);
 	this->centralProcessor = CPU_init(&cpu,sizeof(cpu));
 	this->clock = CLK_init((void *)CLK_BASE_ADDR,sizeof(CLK_Obj));
 	this->flash = FLASH_init((void *)FLASH_BASE_ADDR,sizeof(FLASH_Obj));
@@ -96,6 +98,7 @@ void TMS320F2806::setup(PLL_ClkFreq_e frequency)
    PIE_disableAllInts(this->pie);
    PIE_clearAllInts(this->pie);
    PIE_clearAllFlags(this->pie);
+
    PIE_setDefaultIntVectorTable(this->pie);
    PIE_enable(this->pie);
 
@@ -111,7 +114,7 @@ void TMS320F2806::setup(PLL_ClkFreq_e frequency)
 
    FLASH_setActiveWaitCount(this->flash,FLASH_ACTIVE_WAIT_COUNT_DEFAULT);
 
-   DELAY_US(100);
+   //DELAY_US(100);
    CPU_enableGlobalInts(this->centralProcessor);
 
 }
