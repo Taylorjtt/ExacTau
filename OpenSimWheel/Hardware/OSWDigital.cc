@@ -5,7 +5,7 @@
  *      Author: JohnTaylor
  */
 
-#include "OSWComponents.hh"
+#include "OSWHardware.hh"
 
 
 OSWDigital::OSWDigital()
@@ -45,6 +45,14 @@ void OSWDigital::setDirection(GPIO_Number_e gpioNumber, GPIO_Direction_e directi
 void OSWDigital::setMode(GPIO_Number_e gpioNumber, GPIO_Mode_e mode)
 {
 	GPIO_setMode(this->gpio,gpioNumber,mode);
+}
+void OSWDigital::setQualification(GPIO_Number_e gpioNumber,GPIO_Qual_e qualification)
+{
+	GPIO_setQualification(this->gpio,gpioNumber,qualification);
+}
+void OSWDigital::setPullUp(GPIO_Number_e gpioNumber,GPIO_Pullup_e pullup)
+{
+	GPIO_setPullup(this->gpio,gpioNumber,pullup);
 }
 OSWDigital::~OSWDigital()
 {

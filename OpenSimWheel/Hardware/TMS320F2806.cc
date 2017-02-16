@@ -119,3 +119,7 @@ void TMS320F2806::setup(PLL_ClkFreq_e frequency)
 
 }
 
+void TMS320F2806::enableSCIBClock()
+{
+	CLK_enableScibClock(this->clock);
+}
