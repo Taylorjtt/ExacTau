@@ -29,8 +29,7 @@ int main(void)
 
 	while(true)
 	{
-		angleInRads = encoder.getPositionInRadians();
-		angleInDegs = encoder.getPositionInDegrees();
+
 		digital.toggle(GPIO_Number_34);
 		DELAY_US(1e5);
 		serial.send('A');
