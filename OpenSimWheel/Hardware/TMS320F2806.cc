@@ -123,3 +123,11 @@ void TMS320F2806::enableSCIBClock()
 {
 	CLK_enableScibClock(this->clock);
 }
+void TMS320F2806::enableEQEP1Clock()
+{
+	 CLK_enableEqep1Clock(this->clock);
+}
+TMS320F2806::~TMS320F2806()
+{
+
+}

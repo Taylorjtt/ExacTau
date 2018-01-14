@@ -28,6 +28,7 @@ private:
 
 class OSWSerial: public Serial {
 public:
+	OSWSerial();
 	OSWSerial(OSWDigital digital,SCI_BaudRate_e baudRate);
 	void send(char c);
 	virtual ~OSWSerial();
@@ -35,5 +36,21 @@ private:
 	SCI_Handle sciHandle;
 };
 
+class QuadratureEncoder:public Encoder
+{
+public:
+	QuadratureEncoder();
+	QuadratureEncoder(OSWDigital digital, uint16_t countsPerRevolution);
+	float getPositionInRadians();
+	float getPositionInDegrees();
+	float getVelocityInRadiansPerSecond();
+	float getVelocityInDegreesPerSecond();
+	float getVelocityInRPM();
+	void setOffsetInRadians(float offset);
+	virtual ~QuadratureEncoder(){};
+private:
+
+	QEP_Handle qepHandle;
+};
 
 #endif /* HARDWARE_OSWHARDWARE_HH_ */

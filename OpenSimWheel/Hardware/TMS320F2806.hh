@@ -39,6 +39,7 @@ public:
 	~TMS320F2806();
 	void setup(PLL_ClkFreq_e frequency);
 	void enableSCIBClock();
+	void enableEQEP1Clock();
 	PIE_Handle getPie(){return pie;};
 private:
 	OSC_Handle oscillator;

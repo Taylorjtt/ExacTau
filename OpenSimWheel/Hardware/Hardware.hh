@@ -10,6 +10,7 @@
 #include <stdbool.h>
 #include "../Peripherial Drivers/gpio.h"
 #include "../Peripherial Drivers/sci.h"
+#include "../Peripherial Drivers/qep.h"
 class DigitalHardware
 {
 public:
