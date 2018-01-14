@@ -6,7 +6,7 @@
  */
 
 #include "OSWHardware.hh"
-
+#include "../math.h"
 QuadratureEncoder::QuadratureEncoder()
 {
 
@@ -14,7 +14,7 @@ QuadratureEncoder::QuadratureEncoder()
 QuadratureEncoder::QuadratureEncoder(OSWDigital digital, uint16_t countsPerRevolution)
 {
 	this->qepHandle= QEP_init((void *)QEP1_BASE_ADDR, sizeof(QEP_Obj));
-
+	this->countsPerRev = countsPerRevolution;
 	digital.setPullUp(GPIO_Number_21, GPIO_Pullup_Enable);
 	digital.setPullUp(GPIO_Number_23, GPIO_Pullup_Disable);
 
@@ -66,11 +66,11 @@ QuadratureEncoder::QuadratureEncoder(OSWDigital digital, uint16_t countsPerRevol
 
 float QuadratureEncoder::getPositionInRadians()
 {
-	return 0.0;
+	return 2*MATH_PI*(float)QEP_read_posn_count(this->qepHandle)/(4*(float)this->countsPerRev);
 }
 float QuadratureEncoder::getPositionInDegrees()
 {
-	return 0.0;
+	return 360*(float)QEP_read_posn_count(this->qepHandle)/(4*(float)this->countsPerRev);;
 }
 float QuadratureEncoder::getVelocityInRadiansPerSecond()
 {

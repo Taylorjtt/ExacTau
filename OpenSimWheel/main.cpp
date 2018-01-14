@@ -5,7 +5,8 @@ TMS320F2806 processor;
 OSWDigital digital;
 OSWSerial serial;
 QuadratureEncoder encoder;
-
+float angleInRads = 0.0;
+float angleInDegs = 0.0;
 int main(void)
 {
 
@@ -28,6 +29,8 @@ int main(void)
 
 	while(true)
 	{
+		angleInRads = encoder.getPositionInRadians();
+		angleInDegs = encoder.getPositionInDegrees();
 		digital.toggle(GPIO_Number_34);
 		DELAY_US(1e5);
 		serial.send('A');

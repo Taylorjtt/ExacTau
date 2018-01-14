@@ -51,6 +51,7 @@ public:
 private:
 
 	QEP_Handle qepHandle;
+	uint32_t countsPerRev;
 };
 
 #endif /* HARDWARE_OSWHARDWARE_HH_ */
