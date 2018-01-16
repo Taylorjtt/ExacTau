@@ -11,6 +11,8 @@
 #include "../Peripherial Drivers/gpio.h"
 #include "../Peripherial Drivers/sci.h"
 #include "../Peripherial Drivers/qep.h"
+#include "../Peripherial Drivers/pwm.h"
+
 class DigitalHardware
 {
 public:
@@ -33,6 +35,12 @@ public:
 	virtual float getVelocityInRPM() = 0;
 	virtual void setOffsetInRadians(float offset) = 0;
 
+};
+class Inverter
+{
+public:
+	~Inverter(){};
+	void modulate(float ah, float al, float bh, float bl, float ch, float cl);
 };
 class Serial
 {

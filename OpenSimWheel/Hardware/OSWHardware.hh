@@ -35,7 +35,16 @@ public:
 private:
 	SCI_Handle sciHandle;
 };
-
+class OSWInverter: public Inverter
+{
+public:
+	OSWInverter();
+	void modulate(float ah, float al, float bh, float bl, float ch, float cl);
+private:
+	PWM_Handle pwmA;
+	PWM_Handle pwmB;
+	PWM_Handle pwmC;
+};
 class QuadratureEncoder:public Encoder
 {
 public:

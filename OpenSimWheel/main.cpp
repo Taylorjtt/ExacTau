@@ -5,10 +5,9 @@ TMS320F2806 processor;
 OSWDigital digital;
 OSWSerial serial;
 QuadratureEncoder encoder;
-float angleInRads = 0.0;
-float angleInDegs = 0.0;
+
 int main(void)
-{
+ {
 
 	processor = TMS320F2806();
 	digital = OSWDigital();
