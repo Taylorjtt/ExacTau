@@ -127,6 +127,23 @@ void TMS320F2806::enableEQEP1Clock()
 {
 	 CLK_enableEqep1Clock(this->clock);
 }
+void TMS320F2806::enablePWMClock(PWM_Number_e number)
+{
+	CLK_enablePwmClock(this->clock,number);
+
+}
+void TMS320F2806::enableTbClockSync(bool enable)
+{
+	if(!enable)
+	{
+		CLK_disableTbClockSync(this->clock);
+	}
+	else
+	{
+		CLK_enableTbClockSync(this->clock);
+	}
+
+}
 TMS320F2806::~TMS320F2806()
 {
 

@@ -11,8 +11,9 @@ QuadratureEncoder::QuadratureEncoder()
 {
 
 }
-QuadratureEncoder::QuadratureEncoder(OSWDigital digital, uint16_t countsPerRevolution)
+QuadratureEncoder::QuadratureEncoder(TMS320F2806 processor,OSWDigital digital, uint16_t countsPerRevolution)
 {
+	processor.enableEQEP1Clock();
 	this->qepHandle= QEP_init((void *)QEP1_BASE_ADDR, sizeof(QEP_Obj));
 	this->countsPerRev = countsPerRevolution;
 	digital.setPullUp(GPIO_Number_21, GPIO_Pullup_Enable);
@@ -45,6 +46,8 @@ QuadratureEncoder::QuadratureEncoder(OSWDigital digital, uint16_t countsPerRevol
 	QEP_set_capture_prescale(this->qepHandle, QCAPCTL_Ccps_Capture_Div_128);
 	QEP_enable_capture(this->qepHandle);
 	QEP_enable_interrupt(this->qepHandle, QEINT_Iel);
+
+
 
 //	/*
 //	 * We will use a velocity sampling rate of 50hz:

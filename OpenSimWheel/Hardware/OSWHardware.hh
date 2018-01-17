@@ -8,6 +8,7 @@
 #ifndef HARDWARE_OSWHARDWARE_HH_
 #define HARDWARE_OSWHARDWARE_HH_
 #include "Hardware.hh"
+#include "TMS320F2806.hh"
 
 class OSWDigital : public DigitalHardware{
 public:
@@ -29,7 +30,7 @@ private:
 class OSWSerial: public Serial {
 public:
 	OSWSerial();
-	OSWSerial(OSWDigital digital,SCI_BaudRate_e baudRate);
+	OSWSerial(TMS320F2806 processor,OSWDigital digital,SCI_BaudRate_e baudRate);
 	void send(char c);
 	virtual ~OSWSerial();
 private:
@@ -39,17 +40,21 @@ class OSWInverter: public Inverter
 {
 public:
 	OSWInverter();
-	void modulate(float ah, float al, float bh, float bl, float ch, float cl);
+	OSWInverter(TMS320F2806 processor, OSWDigital digital,const float_t systemFreq_MHz,const float_t pwmPeriod_usec,
+			const uint_least16_t numPwmTicksPerIsrTick);
+	void modulate(float ah, float bh, float ch);
 private:
-	PWM_Handle pwmA;
-	PWM_Handle pwmB;
-	PWM_Handle pwmC;
+	PWM_Handle pwmHandle[3];
+	float dutyToCounts;
+	float ADuty;
+	float BDuty;
+	float CDuty;
 };
 class QuadratureEncoder:public Encoder
 {
 public:
 	QuadratureEncoder();
-	QuadratureEncoder(OSWDigital digital, uint16_t countsPerRevolution);
+	QuadratureEncoder(TMS320F2806 processor,OSWDigital digital, uint16_t countsPerRevolution);
 	float getPositionInRadians();
 	float getPositionInDegrees();
 	float getVelocityInRadiansPerSecond();

@@ -10,8 +10,9 @@ OSWSerial::OSWSerial()
 {
 
 }
-OSWSerial::OSWSerial(OSWDigital digital, SCI_BaudRate_e baudRate)
+OSWSerial::OSWSerial(TMS320F2806 processor,OSWDigital digital, SCI_BaudRate_e baudRate)
 {
+	processor.enableSCIBClock();
 	digital.setPullUp(GPIO_Number_15, GPIO_Pullup_Enable); //rx
 	digital.setPullUp(GPIO_Number_58, GPIO_Pullup_Disable); //tx
 

@@ -40,6 +40,8 @@ public:
 	void setup(PLL_ClkFreq_e frequency);
 	void enableSCIBClock();
 	void enableEQEP1Clock();
+	void enableTbClockSync(bool enable);
+	void enablePWMClock(PWM_Number_e number);
 	PIE_Handle getPie(){return pie;};
 private:
 	OSC_Handle oscillator;
