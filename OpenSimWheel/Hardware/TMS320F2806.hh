@@ -42,6 +42,7 @@ public:
 	void enableEQEP1Clock();
 	void enableTbClockSync(bool enable);
 	void enablePWMClock(PWM_Number_e number);
+	void enableSPIAClock();
 	PIE_Handle getPie(){return pie;};
 private:
 	OSC_Handle oscillator;

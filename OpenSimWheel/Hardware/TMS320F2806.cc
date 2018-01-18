@@ -132,6 +132,11 @@ void TMS320F2806::enablePWMClock(PWM_Number_e number)
 	CLK_enablePwmClock(this->clock,number);
 
 }
+void TMS320F2806::enableSPIAClock()
+{
+	CLK_enableSpiaClock(this->clock);
+
+}
 void TMS320F2806::enableTbClockSync(bool enable)
 {
 	if(!enable)

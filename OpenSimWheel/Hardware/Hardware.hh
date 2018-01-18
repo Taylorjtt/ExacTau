@@ -12,6 +12,8 @@
 #include "../Peripherial Drivers/sci.h"
 #include "../Peripherial Drivers/qep.h"
 #include "../Peripherial Drivers/pwm.h"
+#include "../Peripherial Drivers/spi.h"
+#include "DRV8301/drv8301.h"
 
 class DigitalHardware
 {

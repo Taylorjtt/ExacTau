@@ -67,5 +67,29 @@ private:
 	QEP_Handle qepHandle;
 	uint32_t countsPerRev;
 };
+class Spi
+{
+public:
+	Spi();
+	Spi(TMS320F2806 processor, OSWDigital digital);
+	SPI_Handle getSpiHandle();
+
+private:
+	SPI_Handle spi;
+
+};
+class DRV8301
+{
+public:
+	DRV8301();
+	DRV8301(TMS320F2806 processor, OSWDigital digital,Spi spi);
+	void readDriverData();
+	void writeDriverData();
+private:
+DRV8301_Handle driver;
+DRV_SPI_8301_Vars_t driverVars;
+
+};
+
 
 #endif /* HARDWARE_OSWHARDWARE_HH_ */
