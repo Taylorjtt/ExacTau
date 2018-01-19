@@ -23,6 +23,7 @@ int main(void)
 	inverter = OSWInverter(processor, digital,80,50,1);
 	spi = Spi(processor, digital);
 	driver = DRV8301(processor, digital,spi);
+
 	digital.setMode(GPIO_Number_34,GPIO_34_Mode_GeneralPurpose);
 	digital.setMode(GPIO_Number_39,GPIO_39_Mode_GeneralPurpose);
 	digital.setDirection(GPIO_Number_34,GPIO_Direction_Output);
@@ -33,9 +34,6 @@ int main(void)
 
 	while(true)
 	{
-		//driver.readDriverData();
-		//driver.writeDriverData();
-		//SPI_write(spi.getSpiHandle(),0xAAAA);
 		digital.toggle(GPIO_Number_34);
 		DELAY_US(1e6);
 		serial.send('A');
