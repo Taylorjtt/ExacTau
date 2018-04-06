@@ -7,6 +7,7 @@
 
 #ifndef HARDWARE_TMS320F2806_HH_
 #define HARDWARE_TMS320F2806_HH_
+#include <stdlib.h>
 #include "../common/DSP28x_Project.h"
 #include "../Util/memCopy.h"
 #include "../Peripherial Drivers/osc.h"
@@ -16,6 +17,9 @@
 #include "../Peripherial Drivers/flash.h"
 #include "../Peripherial Drivers/pie.h"
 #include "../Peripherial Drivers/pll.h"
+#include "../Peripherial Drivers/timer.h"
+#include "../f2806_headers/F2806x_Device.h"
+
 
 #define Device_cal (void   (*)(void))0x3D7C80
 #define FP_SCALE 32768
@@ -31,7 +35,7 @@
 #define getRefTempOffset() (*(int16_t (*)(void))0x3D7EA2)()
 #define HAL_PWM_DBFED_CNT         1
 #define HAL_PWM_DBRED_CNT         1
-
+extern volatile uint64_t ticks;
 class TMS320F2806
 {
 public:
@@ -43,7 +47,40 @@ public:
 	void enableTbClockSync(bool enable);
 	void enablePWMClock(PWM_Number_e number);
 	void enableSPIAClock();
+	void enableADCClock();
+	void enableCPUInterrupt(CPU_IntNumber_e number);
+	void enablePieInterrupt(PIE_GroupNumber_e group, PIE_InterruptSource_e source)
+	{
+		PIE_enableInt(this->pie, group, source);
+	};
+	void clearPieInterrupt(PIE_GroupNumber_e group)
+	{
+		PIE_clearInt(this->pie, group);
+	};
+	void registerPIEInterruptHandler(PIE_GroupNumber_e groupNumber, const PIE_SubGroupNumber_e subGroupNumber, const PIE_IntVec_t vector);
+	void disablePie(void)
+	{
+		 PIE_disable(this->pie);
+	}
+	void disableAllPieInts(void)
+	{
+		PIE_disableAllInts(this->pie);
+	}
+	void clearAllPieInts(void)
+	{
+		 PIE_clearAllInts(this->pie);
+	}
+	void clearAllPieFlags(void)
+	{
+		PIE_clearAllFlags(this->pie);
+	}
+	void setDefaultPieTable(void)
+	{
+		PIE_setDefaultIntVectorTable(this->pie);
+	}
 	PIE_Handle getPie(){return pie;};
+	void setupTimer0(void);
+	uint64_t getTicks();
 private:
 	OSC_Handle oscillator;
 	WDOG_Handle watchdog;
@@ -52,9 +89,10 @@ private:
 	FLASH_Handle flash;
 	PIE_Handle pie;
 	PLL_Handle phaseLockLoop;
+	TIMER_Handle timer0;
 };
 
 
-
+__interrupt void timer0Interrupt(void);
 
 #endif /* HARDWARE_TMS320F2806_HH_ */

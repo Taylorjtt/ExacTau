@@ -6,6 +6,7 @@
  */
 
 #include "TMS320F2806.hh"
+volatile uint64_t ticks = 0;
 
 TMS320F2806::TMS320F2806(void)
 {
@@ -18,6 +19,18 @@ TMS320F2806::TMS320F2806(void)
 	this->phaseLockLoop = PLL_init((void *)PLL_BASE_ADDR,sizeof(PLL_Obj));
 	this->pie = PIE_init((void *)PIE_BASE_ADDR,sizeof(PIE_Obj));
 	this->watchdog = WDOG_init((void *)WDOG_BASE_ADDR,sizeof(WDOG_Obj));
+	this->timer0 = TIMER_init((void *)TIMER0_BASE_ADDR,sizeof(TIMER_Obj));
+
+
+}
+
+void TMS320F2806::registerPIEInterruptHandler(PIE_GroupNumber_e groupNumber, const PIE_SubGroupNumber_e subGroupNumber, const PIE_IntVec_t vector)
+{
+	PIE_registerPieIntHandler(this->pie,groupNumber,subGroupNumber,vector);
+}
+void TMS320F2806::enableCPUInterrupt(CPU_IntNumber_e number)
+{
+	CPU_enableInt(centralProcessor,number);
 }
 
 void TMS320F2806::setup(PLL_ClkFreq_e frequency)
@@ -114,9 +127,24 @@ void TMS320F2806::setup(PLL_ClkFreq_e frequency)
 
    FLASH_setActiveWaitCount(this->flash,FLASH_ACTIVE_WAIT_COUNT_DEFAULT);
 
-   //DELAY_US(100);
+   DELAY_US(100);
    CPU_enableGlobalInts(this->centralProcessor);
 
+}
+
+void TMS320F2806::setupTimer0()
+{
+
+	CPU_enableInt(this->centralProcessor, CPU_IntNumber_1);
+    CLK_enableCpuTimerClock(this->clock, CLK_CpuTimerNumber_0);
+	PIE_enableTimer0Int(this->pie);
+	registerPIEInterruptHandler(PIE_GroupNumber_1, PIE_SubGroupNumber_7, (PIE_IntVec_t) &timer0Interrupt);
+	PIE_enableInt(this->pie, PIE_GroupNumber_1, PIE_InterruptSource_TIMER_0);
+	TIMER_setPeriod(this->timer0, 2000); //set up to interrupt at 20khz
+	TIMER_enableInt(this->timer0);		//enable timer 0 interrupt
+	TIMER_setEmulationMode(this->timer0, TIMER_EmulationMode_RunFree);
+	TIMER_setPreScaler(this->timer0,0);
+	TIMER_start(this->timer0);
 }
 
 void TMS320F2806::enableSCIBClock()
@@ -137,6 +165,10 @@ void TMS320F2806::enableSPIAClock()
 	CLK_enableSpiaClock(this->clock);
 
 }
+void TMS320F2806::enableADCClock()
+{
+	CLK_enableAdcClock(clock);
+}
 void TMS320F2806::enableTbClockSync(bool enable)
 {
 	if(!enable)
@@ -149,7 +181,19 @@ void TMS320F2806::enableTbClockSync(bool enable)
 	}
 
 }
+uint64_t TMS320F2806::getTicks()
+{
+	return ticks;
+}
 TMS320F2806::~TMS320F2806()
 {
 
+}
+__interrupt void timer0Interrupt(void)
+{
+	ticks++;
+	EALLOW;
+	CpuTimer0Regs.TCR.bit.TIF = 1;
+	PieCtrlRegs.PIEACK.bit.ACK1 = 1;
+	EDIS;
 }

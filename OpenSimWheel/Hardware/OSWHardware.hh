@@ -9,7 +9,7 @@
 #define HARDWARE_OSWHARDWARE_HH_
 #include "Hardware.hh"
 #include "TMS320F2806.hh"
-
+__interrupt void coilACurrentSense(void);
 class OSWDigital : public DigitalHardware{
 public:
 	OSWDigital(void);
@@ -43,6 +43,7 @@ public:
 	OSWInverter(TMS320F2806 processor, OSWDigital digital,const float_t systemFreq_MHz,const float_t pwmPeriod_usec,
 			const uint_least16_t numPwmTicksPerIsrTick);
 	void modulate(float ah, float bh, float ch);
+	PWM_Handle getPWMHandle(PWM_Number_e number);
 private:
 	PWM_Handle pwmHandle[3];
 	float dutyToCounts;
@@ -88,6 +89,24 @@ public:
 private:
 DRV8301_Handle driver;
 DRV_SPI_8301_Vars_t driverVars;
+
+};
+class CurrentSensor
+{
+public:
+	CurrentSensor();
+	CurrentSensor(TMS320F2806 processor, OSWDigital digital, OSWInverter inverter);
+	float getACurrent();
+	float getBCurrent();
+	float getCCurrent();
+
+private:
+	ADC_Handle adc;
+	float phaseACurrent;
+	float phaseBCurrent;
+	float phaseCCurrent;
+	float currentFromADCCounts(int16_t adcCounts);
+
 
 };
 

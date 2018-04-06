@@ -141,4 +141,8 @@ void OSWInverter::modulate(float ah, float bh, float ch)
 
 }
 
+PWM_Handle OSWInverter::getPWMHandle(PWM_Number_e number)
+{
+	return this->pwmHandle[number];
+}
 

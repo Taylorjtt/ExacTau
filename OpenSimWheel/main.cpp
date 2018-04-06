@@ -40,12 +40,14 @@ int main(void)
 	digital.setMode(GPIO_Number_39,GPIO_39_Mode_GeneralPurpose);
 	digital.setDirection(GPIO_Number_34,GPIO_Direction_Output);
 	digital.setDirection(GPIO_Number_39,GPIO_Direction_Output);
+
 	LEDToggle = Task(20000,0,&toggleLED);
 	taskTable.addTask(LEDToggle);
-
+	inverter.modulate(a,b,c);
 
 	while(true)
 	{
+		inverter.modulate(a,b,c);
 		taskTable.execute(processor);
 	}
  }

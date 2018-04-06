@@ -712,8 +712,8 @@ void DRV8301_setupSpi(DRV8301_Handle handle, DRV_SPI_8301_Vars_t *Spi_8301_Vars)
   drvRegName = DRV8301_RegName_Control_2;
   drvDataNew = (DRV8301_OcTwMode_Both        | \
                 DRV8301_ShuntAmpGain_10VpV   | \
-                DRV8301_DcCalMode_Ch1_NoLoad  | \
-                DRV8301_DcCalMode_Ch2_NoLoad  | \
+                DRV8301_DcCalMode_Ch1_Load  | \
+                DRV8301_DcCalMode_Ch2_Load  | \
                 DRV8301_OcOffTimeMode_Normal);
   DRV8301_writeSpi(handle,drvRegName,drvDataNew);
 

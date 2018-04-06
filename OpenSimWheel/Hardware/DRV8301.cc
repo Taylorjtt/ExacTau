@@ -23,6 +23,7 @@ DRV8301::DRV8301(TMS320F2806 processor, OSWDigital digital, Spi spi)
 	//DC_CAL
 	digital.setDirection(GPIO_Number_51,GPIO_Direction_Output);
 
+	digital.write(GPIO_Number_51,false);
 	DRV8301_setGpioNumber(this->driver,GPIO_Number_50);
 	DRV8301_setGpioHandle(this->driver,digital.getGPIOHandle());
 	DRV8301_enable(this->driver);
