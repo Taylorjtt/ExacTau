@@ -140,7 +140,7 @@ void TMS320F2806::setupTimer0()
 	PIE_enableTimer0Int(this->pie);
 	registerPIEInterruptHandler(PIE_GroupNumber_1, PIE_SubGroupNumber_7, (PIE_IntVec_t) &timer0Interrupt);
 	PIE_enableInt(this->pie, PIE_GroupNumber_1, PIE_InterruptSource_TIMER_0);
-	TIMER_setPeriod(this->timer0, 2000); //set up to interrupt at 20khz
+	TIMER_setPeriod(this->timer0, 800); //set up to interrupt at 100khz
 	TIMER_enableInt(this->timer0);		//enable timer 0 interrupt
 	TIMER_setEmulationMode(this->timer0, TIMER_EmulationMode_RunFree);
 	TIMER_setPreScaler(this->timer0,0);
@@ -191,8 +191,12 @@ TMS320F2806::~TMS320F2806()
 }
 __interrupt void timer0Interrupt(void)
 {
+
+	//GpioDataRegs.GPBTOGGLE.bit.GPIO33 = 1;
+
 	ticks++;
 	EALLOW;
+
 	CpuTimer0Regs.TCR.bit.TIF = 1;
 	PieCtrlRegs.PIEACK.bit.ACK1 = 1;
 	EDIS;

@@ -14,23 +14,25 @@ TaskTable::TaskTable()
 
 }
 
-void TaskTable::addTask(Task t)
+void TaskTable::addTask(Task &t)
 {
-	tasks.push_back(t);
+	tasks.push_back(&t);
 }
 void TaskTable::execute(TMS320F2806 processor)
 {
 	uint64_t ticks = processor.getTicks();
-	for(std::vector<Task>::iterator it = tasks.begin(); it != tasks.end(); ++it)
+
+	for(std::vector<Task*>::iterator it = tasks.begin(); it != tasks.end(); ++it)
 	{
-		if((*it).getInterval() == 0)
+		if((*it)->getInterval() == 0)
 		{
-			(*it).execute();
+			(*it)->execute();
 		}
-		else if (ticks - (*it).getLastTick() >= (*it).getInterval())
+
+		else if (ticks - (*it)->getLastTick() >= (*it)->getInterval())
 		{
-			(*it).execute();
-			(*it).setLastTick(ticks);
+			(*it)->execute();
+			(*it)->setLastTick(ticks);
 
 		}
 	}

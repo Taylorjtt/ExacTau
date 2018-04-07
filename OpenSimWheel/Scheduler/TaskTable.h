@@ -14,11 +14,11 @@
 class TaskTable {
 public:
 	TaskTable();
-	void addTask(Task t);
+	void addTask(Task &t);
 	void execute(TMS320F2806 processor);
 	virtual ~TaskTable();
 private:
-	std::vector<Task> tasks;
+	std::vector<Task*> tasks;
 };
 
 

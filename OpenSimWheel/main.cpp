@@ -2,6 +2,7 @@
 #include "Hardware/OSWHardware.hh"
 #include "Hardware/TMS320F2806.hh"
 #include "Scheduler/TaskTable.h"
+#include "Scheduler/SerialSendTask.h"
 
 #define ENCODER_CPR 5000
 
@@ -13,15 +14,20 @@ OSWInverter inverter;
 DRV8301 driver;
 Spi spi;
 CurrentSensor currentSensor;
-Task LEDToggle;
+SerialSendTask serialTask;
 TaskTable taskTable;
 float a = 0;
 float b = 0;
 float c = 0;
 
-void toggleLED()
+void setupGPIO()
 {
-	digital.toggle(GPIO_Number_34);
+	digital.setMode(GPIO_Number_33,GPIO_33_Mode_GeneralPurpose);
+	digital.setMode(GPIO_Number_34,GPIO_34_Mode_GeneralPurpose);
+	digital.setMode(GPIO_Number_39,GPIO_39_Mode_GeneralPurpose);
+	digital.setDirection(GPIO_Number_33,GPIO_Direction_Output);
+	digital.setDirection(GPIO_Number_34,GPIO_Direction_Output);
+	digital.setDirection(GPIO_Number_39,GPIO_Direction_Output);
 }
 int main(void)
  {
@@ -36,18 +42,14 @@ int main(void)
 	spi = Spi(processor, digital);
 	driver = DRV8301(processor, digital,spi);
 	currentSensor = CurrentSensor(processor,digital,inverter);
-	digital.setMode(GPIO_Number_34,GPIO_34_Mode_GeneralPurpose);
-	digital.setMode(GPIO_Number_39,GPIO_39_Mode_GeneralPurpose);
-	digital.setDirection(GPIO_Number_34,GPIO_Direction_Output);
-	digital.setDirection(GPIO_Number_39,GPIO_Direction_Output);
+	serialTask =   SerialSendTask(100,0,serial,digital);
+	taskTable.addTask(serialTask);
+	setupGPIO();
 
-	LEDToggle = Task(20000,0,&toggleLED);
-	taskTable.addTask(LEDToggle);
-	inverter.modulate(a,b,c);
+
 
 	while(true)
 	{
-		inverter.modulate(a,b,c);
 		taskTable.execute(processor);
 	}
  }

@@ -13,18 +13,33 @@
 class Task {
 public:
 	Task();
-	Task(uint64_t interval, uint64_t lastTick, void (*funct)(void));
-	void setInterval(uint64_t interval);
-	void setLastTick(uint64_t lastTick);
-	void setFunction(void (*funct)(void));
-	void  execute();
-	uint64_t getInterval();
-	uint64_t getLastTick();
+	Task(uint64_t interval, uint64_t lastTick)
+	{
+		this->interval = interval;
+		this->lastTick = lastTick;
+	}
+	void setInterval(uint64_t interval)
+	{
+		this->interval = interval;
+	}
+	void setLastTick(uint64_t lastTick)
+	{
+		this->lastTick = lastTick;
+	}
+
+	uint64_t getInterval()
+	{
+		return interval;
+	}
+	uint64_t getLastTick()
+	{
+		return lastTick;
+	}
+	virtual void  execute() =0;
 	virtual ~Task();
 private:
 	uint64_t interval;
 	uint64_t lastTick;
-	void (*funct)(void);
 
 };
 
