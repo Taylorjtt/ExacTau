@@ -10,6 +10,7 @@
 #include <vector>
 #include "Task.h"
 
+#define FREQ_1KHZ 100
 
 class TaskTable {
 public:

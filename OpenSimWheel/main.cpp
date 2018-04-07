@@ -36,15 +36,18 @@ int main(void)
 	digital = OSWDigital();
 	processor.setup(PLL_ClkFreq_80_MHz);
 	processor.setupTimer0();
+	setupGPIO();
+
 	serial = OSWSerial(processor,digital,SCI_BaudRate_115_2_kBaud);
 	encoder = QuadratureEncoder(processor,digital,ENCODER_CPR);
 	inverter = OSWInverter(processor, digital,80,50,1);
 	spi = Spi(processor, digital);
 	driver = DRV8301(processor, digital,spi);
 	currentSensor = CurrentSensor(processor,digital,inverter);
-	serialTask =   SerialSendTask(100,0,serial,digital);
+
+	serialTask =   SerialSendTask(FREQ_1KHZ,0,serial,digital);
 	taskTable.addTask(serialTask);
-	setupGPIO();
+
 
 
 
