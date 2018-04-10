@@ -11,6 +11,7 @@
 #include "Task.h"
 
 #define FREQ_1KHZ 100
+#define FREQ_100HZ 1000
 
 class TaskTable {
 public:

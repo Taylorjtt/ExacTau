@@ -45,7 +45,7 @@ int main(void)
 	driver = DRV8301(processor, digital,spi);
 	currentSensor = CurrentSensor(processor,digital,inverter);
 
-	serialTask =   SerialSendTask(FREQ_1KHZ,0,serial,digital);
+	serialTask =   SerialSendTask(FREQ_100HZ,0,serial,digital);
 	taskTable.addTask(serialTask);
 
 
@@ -53,6 +53,7 @@ int main(void)
 
 	while(true)
 	{
+		inverter.modulate(a,b,c);
 		taskTable.execute(processor);
 	}
  }

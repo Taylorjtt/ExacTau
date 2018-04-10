@@ -32,6 +32,7 @@ public:
 	OSWSerial();
 	OSWSerial(TMS320F2806 processor,OSWDigital digital,SCI_BaudRate_e baudRate);
 	void send(char c);
+	void send3Bytes(uint32_t bytes);
 	virtual ~OSWSerial();
 private:
 	SCI_Handle sciHandle;

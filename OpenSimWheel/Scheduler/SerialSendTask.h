@@ -22,10 +22,11 @@ public:
 	{
 
 	}
+	uint32_t getPackedCurrentData(void);
 	virtual void execute()
 	{
-		serial.send('A');
-		serial.send('\n');
+		uint32_t packedData = getPackedCurrentData();
+		serial.send3Bytes(packedData);
 		digital.toggle(GPIO_Number_33);
 
 	}

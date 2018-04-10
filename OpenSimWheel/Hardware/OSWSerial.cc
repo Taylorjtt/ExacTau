@@ -42,6 +42,15 @@ void OSWSerial::send(char c)
 	}
 	SCI_putDataBlocking(this->sciHandle, c);
 }
+void OSWSerial::send3Bytes(uint32_t bytes)
+{
+	int i = 0;
+	for(i = 0; i < 3; i++)
+	{
+		char sendChar = (bytes >> i*8) & 0xFF;
+		send(sendChar);
+	}
+}
 OSWSerial::~OSWSerial()
 {
 	// TODO Auto-generated destructor stub
