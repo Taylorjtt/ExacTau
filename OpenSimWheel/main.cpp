@@ -2,7 +2,14 @@
 #include "Hardware/OSWHardware.hh"
 #include "Hardware/TMS320F2806.hh"
 #include "Scheduler/TaskTable.h"
+extern "C"
+{
+	#include "control/TorqueController.h"
+	#include "Math/IQmathLib.h"
+
+}
 #include "Scheduler/SerialSendTask.h"
+
 
 #define ENCODER_CPR 5000
 
@@ -16,10 +23,12 @@ Spi spi;
 CurrentSensor currentSensor;
 SerialSendTask serialTask;
 TaskTable taskTable;
+TorqueControllerHandle torqueController;
 float a = 0;
 float b = 0;
 float c = 0;
-
+float ia = 0;
+float ib = 0;
 void setupGPIO()
 {
 	digital.setMode(GPIO_Number_33,GPIO_33_Mode_GeneralPurpose);
@@ -31,7 +40,7 @@ void setupGPIO()
 }
 int main(void)
  {
-
+	torqueController = (TorqueControllerHandle)malloc(sizeof(TorqueController_Obj));
 	processor = TMS320F2806();
 	digital = OSWDigital();
 	processor.setup(PLL_ClkFreq_80_MHz);
@@ -45,14 +54,15 @@ int main(void)
 	driver = DRV8301(processor, digital,spi);
 	currentSensor = CurrentSensor(processor,digital,inverter);
 
-	serialTask =   SerialSendTask(FREQ_100HZ,0,serial,digital);
+
+	torqueController = TorqueController_Constructor((void *)torqueController, sizeof(TorqueController_Obj));
+
+	serialTask =  SerialSendTask(FREQ_100HZ,0,serial,digital);
 	taskTable.addTask(serialTask);
-
-
-
 
 	while(true)
 	{
+		TorqueController_doControl(torqueController, ia, ib);
 		inverter.modulate(a,b,c);
 		taskTable.execute(processor);
 	}

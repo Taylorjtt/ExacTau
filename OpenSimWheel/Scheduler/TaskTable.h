@@ -12,6 +12,8 @@
 
 #define FREQ_1KHZ 100
 #define FREQ_100HZ 1000
+#define FREQ_10HZ 10000
+#define FREQ_50HZ 5000
 
 class TaskTable {
 public:

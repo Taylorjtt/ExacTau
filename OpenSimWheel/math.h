@@ -64,6 +64,8 @@ extern "C" {
 
 //! \brief Defines conversion scale factor from N*m to lb*in
 //!
+#define MIN(a,b) (((a)<(b))?(a):(b))
+#define MAX(a,b) (((a)>(b))?(a):(b))
 #define MATH_Nm_TO_lbin_SF        ((float_t)(8.8507457913))
 
 //! \brief Defines 2/3
