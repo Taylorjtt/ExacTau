@@ -6,8 +6,8 @@
 // TITLE:   Linker Command File For F28069 Device
 //
 //###########################################################################
-// $TI Release: F2806x C/C++ Header Files and Peripheral Examples V141 $ 
-// $Release Date: January 19, 2015 $ 
+// $TI Release: F2806x C/C++ Header Files and Peripheral Examples V141 $
+// $Release Date: January 19, 2015 $
 // $Copyright: Copyright (C) 2011-2015 Texas Instruments Incorporated -
 //             http://www.ti.com/ ALL RIGHTS RESERVED $
 //###########################################################################
@@ -106,7 +106,7 @@ PAGE 1 :   /* Data Memory */
    //RAML7       : origin = 0x010000, length = 0x002000     /* on-chip RAM block L7 */
    //RAML8       : origin = 0x012000, length = 0x002000     /* on-chip RAM block L8 */
    FLASHB      : origin = 0x3F0000, length = 0x004000     /* on-chip FLASH */
-   
+
    CLA1_MSGRAMLOW       : origin = 0x001480, length = 0x000080
    CLA1_MSGRAMHIGH      : origin = 0x001500, length = 0x000080
 }
@@ -127,7 +127,7 @@ SECTIONS
    .pinit              : > FLASHA,     			PAGE = 0
    .text               : >> FLASHD | FLASHH,	PAGE = 0
    codestart           : > BEGIN       			PAGE = 0
-   
+
    Cla1Prog            : LOAD = FLASHE,
                          RUN = RAML0,
                          LOAD_START(_Cla1funcsLoadStart),
@@ -138,7 +138,7 @@ SECTIONS
 
    Cla1ToCpuMsgRAM     : > CLA1_MSGRAMLOW,   PAGE = 1
    CpuToCla1MsgRAM     : > CLA1_MSGRAMHIGH,  PAGE = 1
-   
+
    ramfuncs            : LOAD = FLASHE,
                          RUN = RAML3,
                          LOAD_START(_RamfuncsLoadStart),
@@ -146,8 +146,8 @@ SECTIONS
                          RUN_START(_RamfuncsRunStart),
 						 LOAD_SIZE(_RamfuncsLoadSize),
                          PAGE = 0
-   
-   
+
+
    csmpasswds          : > CSM_PWL_P0  PAGE = 0
    csm_rsvd            : > CSM_RSVD    PAGE = 0
 
@@ -161,13 +161,29 @@ SECTIONS
    .econst             : > FLASHG     PAGE = 0
    .switch             : > FLASHF      PAGE = 0
 
-   /* Allocate IQ math areas: */
-   IQmath              : > FLASHA      PAGE = 0            /* Math Code */
-   IQmathTables        : > IQTABLES,   PAGE = 0, TYPE = NOLOAD
-   
+	   /* IQmath inclues the assembly routines in the IQmath library
+      IQmathTables is used by division, IQsin, IQcos, IQatan, IQatan2
+                   this is in boot ROM so we make it NOLOAD.  Using
+                   the ROM version saves space at the cost of 1 cycle
+                   per access (boot ROM is 1 wait).
+      IQmathTablesRam is used by IQasin, IQacos, and IQexp
+      Noticed these tables are linked seperatly since they are from
+      two source files within the library.
+   */
+   IQmath           : > RAML3,      PAGE = 0
+   IQmathTables     : > IQTABLES,   PAGE = 0, TYPE = NOLOAD
+   IQmathTables2    : > IQTABLES2,  PAGE = 0, TYPE = NOLOAD
+   {
+        IQmath_fpu32.lib<IQNexpTable.obj> (IQmathTablesRam)
+   }
+   IQmathTables3    :> IQTABLES3,   PAGE = 0, type = NOLOAD
+   {
+       IQmath_fpu32.lib<IQNasinTable.obj> (IQmathTablesRam)
+   }
+
    /* Allocate FPU math areas: */
    FPUmathTables       : > FPUTABLES,  PAGE = 0, TYPE = NOLOAD
-   
+
    //DMARAML5	           : > RAML5,      PAGE = 1
    //DMARAML6	           : > RAML6,      PAGE = 1
    //DMARAML7	           : > RAML7,      PAGE = 1

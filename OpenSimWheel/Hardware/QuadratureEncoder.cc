@@ -9,13 +9,15 @@
 #include "../math.h"
 QuadratureEncoder::QuadratureEncoder()
 {
-
 }
 QuadratureEncoder::QuadratureEncoder(TMS320F2806 processor,OSWDigital digital, uint16_t countsPerRevolution)
 {
+	this->offset = 0;
+
 	processor.enableEQEP1Clock();
 	this->qepHandle= QEP_init((void *)QEP1_BASE_ADDR, sizeof(QEP_Obj));
 	this->countsPerRev = countsPerRevolution;
+	this->ppr = 4 * countsPerRev;
 	digital.setPullUp(GPIO_Number_21, GPIO_Pullup_Enable);
 	digital.setPullUp(GPIO_Number_23, GPIO_Pullup_Disable);
 
@@ -66,14 +68,28 @@ QuadratureEncoder::QuadratureEncoder(TMS320F2806 processor,OSWDigital digital, u
 //	EDIS;
 
 }
-
+int QuadratureEncoder::getShiftedTicks()
+{
+	int shifted = ((int)QEP_read_posn_count(this->qepHandle) - this->offset);
+	if(shifted < 0)
+	{
+		shifted = ppr + shifted;
+	}
+	return shifted;
+}
 float QuadratureEncoder::getPositionInRadians()
 {
-	return 2*MATH_PI*(float)QEP_read_posn_count(this->qepHandle)/(4*(float)this->countsPerRev);
+	float divided = (float)getShiftedTicks()/ ((float)ppr);
+	float final = 2*MATH_PI*divided;
+	return final;
 }
+
 float QuadratureEncoder::getPositionInDegrees()
 {
-	return 360*(float)QEP_read_posn_count(this->qepHandle)/(4*(float)this->countsPerRev);;
+
+	float divided = (float)getShiftedTicks()/ ((float)ppr);
+	float final = 360*divided;
+	return final;
 }
 float QuadratureEncoder::getVelocityInRadiansPerSecond()
 {
@@ -87,7 +103,8 @@ float QuadratureEncoder::getVelocityInRPM()
 {
 	return 0.0;
 }
-void QuadratureEncoder::setOffsetInRadians(float offset)
+void QuadratureEncoder::zero()
 {
-
+	this->offset = QEP_read_posn_count(this->qepHandle);
 }
+

@@ -10,6 +10,7 @@
 #include "Hardware.hh"
 #include "TMS320F2806.hh"
 __interrupt void coilACurrentSense(void);
+
 class OSWDigital : public DigitalHardware{
 public:
 	OSWDigital(void);
@@ -62,12 +63,15 @@ public:
 	float getVelocityInRadiansPerSecond();
 	float getVelocityInDegreesPerSecond();
 	float getVelocityInRPM();
-	void setOffsetInRadians(float offset);
+	int getShiftedTicks();
+	void zero();
 	virtual ~QuadratureEncoder(){};
 private:
 
 	QEP_Handle qepHandle;
 	uint32_t countsPerRev;
+	uint32_t ppr;
+	int32_t offset;
 };
 class Spi
 {

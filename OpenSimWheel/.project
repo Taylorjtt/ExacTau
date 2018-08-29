@@ -29,5 +29,13 @@
 			<name>INSTALLROOT_F2806x_V141</name>
 			<value>file:/F:/ti/controlSUITE/device_support/f2806x/v141</value>
 		</variable>
+		<variable>
+			<name>INSTALLROOT_IQMATH_160</name>
+			<value>$%7BPROJECT_LOC%7D/../../..</value>
+		</variable>
+		<variable>
+			<name>INSTALLROOT_IQMATH_TO_2806X_BOOT</name>
+			<value>$%7BPROJECT_LOC%7D/../../../../../../utilities/boot_rom/2806x/2806x_BootROMSymbols_v1_1</value>
+		</variable>
 	</variableList>
 </projectDescription>

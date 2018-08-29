@@ -1,6 +1,8 @@
+;// TI File $Revision: /main/1 $
+;// Checkin $Date: July 10, 2008   10:35:00 $
 ;//###########################################################################
 ;//
-;// FILE:  F2806x_CodeStartBranch.asm	
+;// FILE:  CodeStartBranch.asm
 ;//
 ;// TITLE: Branch for redirecting code execution after boot. 
 ;//
@@ -9,10 +11,9 @@
 ;//
 ;// The codestart section in the linker cmd file is used to physically place
 ;// this code at the correct memory location.  This section should be placed 
-;// at the location the BOOT ROM will re-direct the code to.  For example, 
-;// for boot to FLASH this code will be located at 0x3f7ff6. 
+;// at the location the BOOT ROM will re-direct the code to.
 ;//
-;// In addition, the example F2806x projects are setup such that the codegen
+;// In addition, the example projects are setup such that the codegen
 ;// entry point is also set to the code_start label.  This is done by linker 
 ;// option -e in the project build options.  When the debugger loads the code,
 ;// it will automatically set the PC to the "entry point" address indicated by
@@ -25,11 +26,10 @@
 ;// to _c_init00 and thus there is no worry and this warning can be ignored. 
 ;// 
 ;//###########################################################################
-;// $TI Release: F2806x C/C++ Header Files and Peripheral Examples V141 $ 
-;// $Release Date: January 19, 2015 $ 
-;// $Copyright: Copyright (C) 2011-2015 Texas Instruments Incorporated -
-;//             http://www.ti.com/ ALL RIGHTS RESERVED $
+;// $TI Release: Release 1.5c $
+;// $Release Date: June 8, 2010 $
 ;//###########################################################################
+
 
 ***********************************************************************
 
@@ -47,13 +47,14 @@ WD_DISABLE	.set	1		;set to 1 to disable WD, else set to 0
     .sect "codestart"
 
 code_start:
-   .if WD_DISABLE == 1
+    .if WD_DISABLE == 1
         LB wd_disable       ;Branch to watchdog disable code
     .else
         LB _c_int00         ;Branch to start of boot.asm in RTS library
     .endif
 
 ;end codestart section
+
 
 ***********************************************************************
 * Function: wd_disable
@@ -74,6 +75,8 @@ wd_disable:
     .endif
 
 ;end wd_disable
+
+
 
 	.end
 	

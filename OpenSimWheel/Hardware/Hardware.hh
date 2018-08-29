@@ -36,7 +36,6 @@ public:
 	virtual float getVelocityInRadiansPerSecond() = 0;
 	virtual float getVelocityInDegreesPerSecond() = 0;
 	virtual float getVelocityInRPM() = 0;
-	virtual void setOffsetInRadians(float offset) = 0;
 
 };
 class Inverter

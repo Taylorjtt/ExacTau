@@ -154,7 +154,9 @@ typedef struct _MATH_vec3_
   float_t  value[3];
 
 } MATH_vec3;
-
+static int modulo(int x,int N){
+    return (x % N + N) %N;
+}
 
 // **************************************************************************
 // the function prototypes
@@ -163,6 +165,7 @@ typedef struct _MATH_vec3_
 //! \brief     Finds the absolute value 
 //! \param[in] in   The input value
 //! \return    The absolute value
+
 static inline float_t MATH_abs(const float_t in)
 {
   float_t out = in;

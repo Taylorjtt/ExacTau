@@ -6,7 +6,10 @@ File name:       CLARKE.H
 #ifndef __CLARKE_H__
 #define __CLARKE_H__
 
+
 #include "IQmathLib.h"
+
+
 typedef struct {  _iq  As;  		// Input: phase-a stator variable
 				  _iq  Bs;			// Input: phase-b stator variable
 				  _iq  Cs;			// Input: phase-c stator variable
