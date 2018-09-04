@@ -83,10 +83,10 @@ PAGE 0 :
    BEGIN       : origin = 0x3F7FF6, length = 0x000002     /* Part of FLASHA.  Used for "boot to Flash" bootloader mode. */
    CSM_PWL_P0  : origin = 0x3F7FF8, length = 0x000008     /* Part of FLASHA.  CSM password locations in FLASHA */
 
-   FPUTABLES   : origin = 0x3FD860, length = 0x0006A0	  /* FPU Tables in Boot ROM */
-   IQTABLES    : origin = 0x3FDF00, length = 0x000B50     /* IQ Math Tables in Boot ROM */
-   IQTABLES2   : origin = 0x3FEA50, length = 0x00008C     /* IQ Math Tables in Boot ROM */
-   IQTABLES3   : origin = 0x3FEADC, length = 0x0000AA	  /* IQ Math Tables in Boot ROM */
+   FPUTABLES   : origin = 0x3FD590, length = 0x0006A0
+   IQTABLES    : origin = 0x3FDC30, length = 0x000B50     /* IQ Math Tables in Boot ROM */
+   IQTABLES2   : origin = 0x3FE780, length = 0x00008C     /* IQ Math Tables in Boot ROM */
+   IQTABLES3   : origin = 0x3FE80, length = 0x0000AA	  /* IQ Math Tables in Boot ROM */
 
    ROM         : origin = 0x3FF3B0, length = 0x000C10     /* Boot ROM */
    RESET       : origin = 0x3FFFC0, length = 0x000002     /* part of boot ROM  */
