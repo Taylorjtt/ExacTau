@@ -68,14 +68,18 @@ QuadratureEncoder::QuadratureEncoder(TMS320F2806 processor,OSWDigital digital, u
 //	EDIS;
 
 }
-int QuadratureEncoder::getShiftedTicks()
+uint32_t QuadratureEncoder::getShiftedTicks()
 {
-	int shifted = ((int)QEP_read_posn_count(this->qepHandle) - this->offset);
+	int shifted = ((uint32_t)QEP_read_posn_count(this->qepHandle) - this->offset);
 	if(shifted < 0)
 	{
 		shifted = ppr + shifted;
 	}
 	return shifted;
+}
+uint32_t QuadratureEncoder::getRawTicks()
+{
+	return QEP_read_posn_count(this->qepHandle);
 }
 float QuadratureEncoder::getPositionInRadians()
 {

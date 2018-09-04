@@ -2,6 +2,7 @@
 #include "Hardware/OSWHardware.hh"
 #include "Hardware/TMS320F2806.hh"
 #include "Scheduler/TaskTable.h"
+#include "Hardware/BipolarStepper.h"
 extern "C"
 {
 	#include "control/TorqueController.h"
@@ -13,7 +14,7 @@ extern "C"
 
 
 #define ENCODER_CPR 5000
-
+PARK park;
 TMS320F2806 processor;
 OSWDigital digital;
 OSWSerial serial;
@@ -25,22 +26,46 @@ CurrentSensor currentSensor;
 SerialSendTask serialTask;
 TaskTable taskTable;
 TorqueControllerHandle torqueController;
-float a = 0;
-float b = 0;
-float c = 0;
-float ia = 0;
-float ib = 0;
-float position = 0.0;
-int ticksFor1Round = 200;
-float amplitude = 1.0;
-float mult = 1.0;
-bool initPosFlag = true;
-uint32_t delay = 3000;
-int phase = 0;
-float voltage = 100;
-uint32_t speed = 3000;
-float thetaE = 0.0;
+BipolarStepper motor;
+uint32_t delay = 1000;
 
+float thetaE = 0.0;
+bool cw = false;
+_iq theta = 0;
+_iq  SINE = 0;
+_iq  COS = 0;
+float Valpha = 0.0;
+
+float kp = 0.0;
+float ki = 0.0;
+float iDes = 0.0;
+float qErr = 0.0;
+float qi = 0.0;
+float qiMin = -5.0;
+float qiMax = 5.0;
+float di = 0.0;
+float diMin = -5.0;
+float diMax = 5.0;
+float dErr = 0.0;
+float d = 0.0;
+float q = 0.0;
+float qOut = 0.0;
+float dOut = 0.0;
+float a = 0.0;
+float b = 0.0;
+
+
+float Vbeta = 0.0;
+float max = 0.0;
+float min = 0.0;
+float vc =  0.0;
+float va = 0.0;
+float vb = 0.0;
+float mult = 0.1;
+float ia = 0.0;
+float ib = 0.0;
+float offset =	0.1;
+float vectorTheta = 0.0;
 bool doStep = false;
 void setupGPIO()
 {
@@ -51,81 +76,16 @@ void setupGPIO()
 	digital.setDirection(GPIO_Number_34,GPIO_Direction_Output);
 	digital.setDirection(GPIO_Number_39,GPIO_Direction_Output);
 }
-void step(OSWInverter inv, int phase)
-{
-	ia = currentSensor.getACurrent();
-	ib = currentSensor.getBCurrent();
-	if(phase == 0)
-	{
-		inv.modulate(100,0,0); //1
-		DELAY_US(delay);
-		inv.modulate(100,100,0);//2
-	}
 
-	if(phase == 1)
-	{
-		inv.modulate(0,100,0);//3
-		DELAY_US(delay);
-		inv.modulate(0,100,50);//4
-
-	}
-	if(phase == 2)
-	{
-		inv.modulate(0,100,100);//5
-		DELAY_US(delay);
-		inv.modulate(0,0,100);//6
-	}
-
-
-	if(phase == 3)
-	{
-		inv.modulate(100,0,100);//7
-		DELAY_US(delay);
-		inv.modulate(100,0,50);//8
-	}
-	DELAY_US(delay);
-	//inv.modulate(0,0,0);
-}
-void initializePosition(OSWInverter inv, QuadratureEncoder& enc)
-{
-	for(int i = 0; i < ticksFor1Round; i++)
-	{
-		if(i < 20)
-		{
-			speed = 3000;
-			delay = 3000;
-		}
-		else
-		{
-			speed = 3000;
-			delay = 3000;
-		}
-		step(inv,phase);
-		DELAY_US(speed);
-		phase++;
-		if(phase > 3)
-		phase = 0;
-		DELAY_US(speed);
-	}
-	initPosFlag = false;
-	DELAY_US(1e6);
-	inv.modulate(75.0,0.0,0.0);
-	DELAY_US(1e6);
-	enc.zero();
-	DELAY_US(5e5);
-	inv.modulate(0,0,0);
-
-
-}
 int main(void)
  {
+
 	torqueController = (TorqueControllerHandle)malloc(sizeof(TorqueController_Obj));
 	processor = TMS320F2806();
 	digital = OSWDigital();
 	processor.setup(PLL_ClkFreq_80_MHz);
 	processor.setupTimer0();
 	setupGPIO();
-
 	serial = OSWSerial(processor,digital,SCI_BaudRate_115_2_kBaud);
 	encoder = QuadratureEncoder(processor,digital,ENCODER_CPR);
 	inverter = OSWInverter(processor, digital,80,50,1);
@@ -136,26 +96,78 @@ int main(void)
 	serialTask =  SerialSendTask(FREQ_100HZ,0,serial,digital);
 	taskTable.addTask(serialTask);
 
+	park.Alpha = 0;
+	park.Angle = 0;
+	park.Beta = 0;
+	park.Cosine = 0;
+	park.Qs = 0;
+	park.Sine = 0;
+	park.Ds = 0;
 
+	motor = BipolarStepper(inverter);
+	motor.zero(encoder);
 
 	while(true)
 	{
-		//if(initPosFlag)
-		//{
-			//initializePosition(inverter,encoder);
-		//}
-		driver.writeDriverData();
-		driver.readDriverData();
-		position = encoder.getPositionInDegrees();
-		thetaE = fmod((encoder.getPositionInRadians()+3.14/2.0) * 50.0,2*3.14159);
-		ia = currentSensor.getACurrent();
-		ib = currentSensor.getBCurrent();
-		TorqueController_doControl(torqueController, ia, ib, thetaE);
-		//a = mult*TorqueController_getA(torqueController);
-		//b = mult*TorqueController_getB(torqueController);
-		//c = mult*TorqueController_getC(torqueController);
+		thetaE = fmod(((float)encoder.getShiftedTicks() * 0.0157),MATH_TWO_PI) ;
+		if(cw){
+			vectorTheta = fmod(thetaE - offset,MATH_TWO_PI);
+		}
+		else
+		{
+			vectorTheta = fmod(thetaE + offset,MATH_TWO_PI);
+		}
+		//current sensor offset reading
+		int offset = AdcResult.ADCRESULT3>>1;
 
-		inverter.modulate(a,b,c);
+		//read the phase currents
+		ia = ((int32_t)AdcResult.ADCRESULT0 - offset)*0.0080566;
+		ib = ((int32_t)AdcResult.ADCRESULT1 - offset)*0.0080566;
+
+		theta = _IQ24(vectorTheta);
+		SINE = _IQ24sin(theta);
+		COS = _IQ24cos(theta);
+		park.Sine = SINE;
+		park.Cosine = COS;
+		park.Alpha = _IQ24(ia);
+		park.Beta = _IQ24(ib);
+		PARK_MACRO(park);
+		d = _IQ24toF(park.Ds);
+		q = _IQ24toF(park.Qs);
+		qErr = iDes - q;
+		dErr = 0.0-d;
+
+		qOut = kp * qErr + MATH_sat(ki*(qErr) + qi,qiMax,qiMin);
+		dOut = kp * dErr + MATH_sat(ki*(dErr) + di,diMax,diMin);
+
+		park.Qs = _IQ24(qOut);
+		park.Ds = _IQ24(dOut);
+
+		IPARK_MACRO(park);
+		a = _IQ24toF(park.Alpha);
+		b = _IQ24toF(park.Beta);
+		max = MAX(a, b);
+		min = MIN(a, b);
+		vc =  0.5 * (1.0 - (max-min));
+		va = vc  + a;
+		vb = vc + b;
+		vc = 70.0*vc;
+		va = 70.0*va;
+		vb = 70.0*vb;
+
+//		Valpha = 7.5*_IQ24toF(SINE);
+//		Vbeta = 7.5*_IQ24toF(COS);
+//		max = MAX(Valpha, Vbeta);
+//		min = MIN(Valpha, Vbeta);
+//
+//		va = vc  + Valpha;
+//		vb = vc + Vbeta;
+//		vc = 4.1666*vc;
+//		va = 4.1666*va;
+//		vb = 4.1666*vb;
+		inverter.modulate(mult*va,mult*vb,mult*vc);
 		taskTable.execute(processor);
+//		//DELAY_US(del);
+
 	}
  }

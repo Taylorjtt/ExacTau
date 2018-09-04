@@ -58,12 +58,13 @@ class QuadratureEncoder:public Encoder
 public:
 	QuadratureEncoder();
 	QuadratureEncoder(TMS320F2806 processor,OSWDigital digital, uint16_t countsPerRevolution);
+	uint32_t getRawTicks();
 	float getPositionInRadians();
 	float getPositionInDegrees();
 	float getVelocityInRadiansPerSecond();
 	float getVelocityInDegreesPerSecond();
 	float getVelocityInRPM();
-	int getShiftedTicks();
+	uint32_t getShiftedTicks();
 	void zero();
 	virtual ~QuadratureEncoder(){};
 private:
