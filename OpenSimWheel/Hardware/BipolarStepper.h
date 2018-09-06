@@ -23,6 +23,7 @@ public:
 	void microstepCW(uint32_t numberOfSteps);
 	void microstepCCW(uint32_t numberOfSteps);
 	void initializeEncoder();
+	void recalibrate(QuadratureEncoder &encoder);
 	void zero(QuadratureEncoder &encoder);
 	virtual ~BipolarStepper();
 private:

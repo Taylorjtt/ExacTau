@@ -53,11 +53,29 @@ void BipolarStepper::zero(QuadratureEncoder &encoder)
 		}
 	}
 	DELAY_US(1e6);
-	inv.modulate(34.3,63.5417,34.3);
-	DELAY_US(1e6);
+	inv.modulate(65.5,34.5,34.5);
+	DELAY_US(2e6);
 	encoder.zero();
-	DELAY_US(1e6);
-	inv.modulate(0.0,0.0,0.0);
+	int i = 0;
+	for(i = 0; i < 30; i++)
+	{
+		inv.modulate(65.5-i,34.5,34.5);
+		DELAY_US(5e3);
+	}
+}
+
+void BipolarStepper::recalibrate(QuadratureEncoder &encoder)
+{
+	inv.modulate(65.5,34.5,34.5);
+	DELAY_US(2e6);
+	encoder.zero();
+	DELAY_US(2e6);
+	int i = 0;
+	for(i = 0; i < 30; i++)
+	{
+		inv.modulate(65.5-i,34.5,34.5);
+		DELAY_US(5e3);
+	}
 }
 void BipolarStepper::microstepCW()
 {
