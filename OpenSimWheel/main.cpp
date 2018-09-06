@@ -34,10 +34,13 @@ bool cw = false;
 _iq theta = 0;
 _iq  SINE = 0;
 _iq  COS = 0;
+float aa = 34.5;
+float bb = 34.5;
+float cc = 34.5;
 float Valpha = 0.0;
 
-float kp = 0.0;
-float ki = 0.0;
+float kp = 2.5;
+float ki = 0.01;
 float iDes = 0.0;
 float qErr = 0.0;
 float qi = 0.0;
@@ -53,8 +56,9 @@ float qOut = 0.0;
 float dOut = 0.0;
 float a = 0.0;
 float b = 0.0;
-
-
+bool calibrate = false;
+float minCurrent = -7.0;
+float maxCurrent = 7.0;
 float Vbeta = 0.0;
 float max = 0.0;
 float min = 0.0;
@@ -109,6 +113,11 @@ int main(void)
 
 	while(true)
 	{
+		if(calibrate)
+		{
+			motor.recalibrate(encoder);
+			calibrate = false;
+		}
 		thetaE = fmod(((float)encoder.getShiftedTicks() * 0.0157),MATH_TWO_PI) ;
 		if(cw){
 			vectorTheta = fmod(thetaE - offset,MATH_TWO_PI);
@@ -136,24 +145,25 @@ int main(void)
 		q = _IQ24toF(park.Qs);
 		qErr = iDes - q;
 		dErr = 0.0-d;
-
-		qOut = kp * qErr + MATH_sat(ki*(qErr) + qi,qiMax,qiMin);
-		dOut = kp * dErr + MATH_sat(ki*(dErr) + di,diMax,diMin);
-
+		qi = MATH_sat(ki*(qErr) + qi,qiMax,qiMin);
+		di = MATH_sat(ki*(dErr) + di,diMax,diMin);
+		qOut = kp * qErr + qi;
+		dOut = kp * dErr + di;
+		qOut = MATH_sat(qOut,maxCurrent,minCurrent);
+		dOut = MATH_sat(dOut,maxCurrent,minCurrent);
 		park.Qs = _IQ24(qOut);
 		park.Ds = _IQ24(dOut);
 
 		IPARK_MACRO(park);
 		a = _IQ24toF(park.Alpha);
 		b = _IQ24toF(park.Beta);
+		a = MATH_sat(a,maxCurrent,minCurrent);
+		b = MATH_sat(b,maxCurrent,minCurrent);
 		max = MAX(a, b);
 		min = MIN(a, b);
-		vc =  0.5 * (1.0 - (max-min));
-		va = vc  + a;
-		vb = vc + b;
-		vc = 70.0*vc;
-		va = 70.0*va;
-		vb = 70.0*vb;
+		vc =  (0.5 * (7.0 - (max-min)))*2.91 + 28;
+		va = vc  + a * 10.0;
+		vb = vc + b * 10.0 ;
 
 //		Valpha = 7.5*_IQ24toF(SINE);
 //		Vbeta = 7.5*_IQ24toF(COS);
@@ -165,7 +175,7 @@ int main(void)
 //		vc = 4.1666*vc;
 //		va = 4.1666*va;
 //		vb = 4.1666*vb;
-		inverter.modulate(mult*va,mult*vb,mult*vc);
+		inverter.modulate(va,vb,vc);
 		taskTable.execute(processor);
 //		//DELAY_US(del);
 

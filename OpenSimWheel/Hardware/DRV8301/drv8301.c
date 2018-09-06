@@ -701,7 +701,7 @@ void DRV8301_setupSpi(DRV8301_Handle handle, DRV_SPI_8301_Vars_t *Spi_8301_Vars)
 
   // Update Control Register 1
   drvRegName = DRV8301_RegName_Control_1;
-  drvDataNew = (DRV8301_PeakCurrent_1p70_A  | \
+  drvDataNew = (DRV8301_PeakCurrent_1p70_A | \
                 DRV8301_Reset_Normal         | \
                 DRV8301_PwmMode_Three_Inputs  | \
                 DRV8301_OcMode_CurrentLimit | \

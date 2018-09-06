@@ -30,9 +30,10 @@ QuadratureEncoder::QuadratureEncoder(TMS320F2806 processor,OSWDigital digital, u
 	digital.setMode(GPIO_Number_23, GPIO_23_Mode_EQEP1I);
 
 	QEP_set_index_event_latch(this->qepHandle,QEPCTL_Iel_Rising_Edge);
-	QEP_set_posn_count_reset_mode(this->qepHandle,QEPCTL_Pcrm_Max_Reset);
+	QEP_set_posn_count_reset_mode(this->qepHandle,QEPCTL_Pcrm_Index_Reset);
 	QEP_set_QEP_source(this->qepHandle, QEP_Qsrc_Quad_Count_Mode);
 	QEP_set_index_event_init(this->qepHandle,QEPCTL_Iei_Rising_Edge_Init);
+
 	QEP_set_A_polarity(this->qepHandle,QEP_Qap_Inverted);
 
 
