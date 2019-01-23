@@ -22,11 +22,18 @@ OSWInverter::OSWInverter(TMS320F2806 processor, OSWDigital digital,const float_t
 	processor.enablePWMClock(PWM_Number_3);
 
 	digital.setDirection(GPIO_Number_0, GPIO_Direction_Output);
+	digital.setDirection(GPIO_Number_1, GPIO_Direction_Output);
 	digital.setDirection(GPIO_Number_2, GPIO_Direction_Output);
+	digital.setDirection(GPIO_Number_3, GPIO_Direction_Output);
 	digital.setDirection(GPIO_Number_4, GPIO_Direction_Output);
+	digital.setDirection(GPIO_Number_5, GPIO_Direction_Output);
+
 	digital.setMode(GPIO_Number_0, GPIO_0_Mode_EPWM1A);
+	digital.setMode(GPIO_Number_1, GPIO_1_Mode_EPWM1B);
 	digital.setMode(GPIO_Number_2, GPIO_2_Mode_EPWM2A);
+	digital.setMode(GPIO_Number_3, GPIO_3_Mode_EPWM2B);
 	digital.setMode(GPIO_Number_4, GPIO_4_Mode_EPWM3A);
+	digital.setMode(GPIO_Number_5, GPIO_5_Mode_EPWM3B);
 
 	this->pwmHandle[0] = PWM_init((void *)PWM_ePWM1_BASE_ADDR,sizeof(PWM_Obj));
 	this->pwmHandle[1] = PWM_init((void *)PWM_ePWM2_BASE_ADDR,sizeof(PWM_Obj));

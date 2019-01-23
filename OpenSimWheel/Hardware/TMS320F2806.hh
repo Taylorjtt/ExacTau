@@ -15,6 +15,7 @@
 #include "../Peripherial Drivers/clk.h"
 #include "../Peripherial Drivers/cpu.h"
 #include "../Peripherial Drivers/flash.h"
+#include "../Peripherial Drivers/cap.h"
 #include "../Peripherial Drivers/pie.h"
 #include "../Peripherial Drivers/pll.h"
 #include "../Peripherial Drivers/timer.h"
@@ -36,6 +37,7 @@
 #define HAL_PWM_DBFED_CNT         1
 #define HAL_PWM_DBRED_CNT         1
 extern volatile uint64_t ticks;
+extern volatile float dutyCycle;
 class TMS320F2806
 {
 public:
@@ -44,6 +46,7 @@ public:
 	void setup(PLL_ClkFreq_e frequency);
 	void enableSCIBClock();
 	void enableEQEP1Clock();
+	void setupGPIOCapture();
 	void enableTbClockSync(bool enable);
 	void enablePWMClock(PWM_Number_e number);
 	void enableSPIAClock();
@@ -86,6 +89,7 @@ private:
 	WDOG_Handle watchdog;
 	CLK_Handle clock;
 	CPU_Handle centralProcessor;
+	CAP_Handle capture;
 	FLASH_Handle flash;
 	PIE_Handle pie;
 	PLL_Handle phaseLockLoop;
@@ -94,5 +98,6 @@ private:
 
 
 __interrupt void timer0Interrupt(void);
+__interrupt void gpioCaptureInterrupt(void);
 
 #endif /* HARDWARE_TMS320F2806_HH_ */

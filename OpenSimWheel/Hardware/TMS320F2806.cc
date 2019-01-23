@@ -7,6 +7,7 @@
 
 #include "TMS320F2806.hh"
 volatile uint64_t ticks = 0;
+volatile float dutyCycle  = 0;
 
 TMS320F2806::TMS320F2806(void)
 {
@@ -20,13 +21,47 @@ TMS320F2806::TMS320F2806(void)
 	this->pie = PIE_init((void *)PIE_BASE_ADDR,sizeof(PIE_Obj));
 	this->watchdog = WDOG_init((void *)WDOG_BASE_ADDR,sizeof(WDOG_Obj));
 	this->timer0 = TIMER_init((void *)TIMER0_BASE_ADDR,sizeof(TIMER_Obj));
-
+	this->capture = CAP_init((void *)CAP1_BASE_ADDR, sizeof(CAP_Obj));
 
 }
 
 void TMS320F2806::registerPIEInterruptHandler(PIE_GroupNumber_e groupNumber, const PIE_SubGroupNumber_e subGroupNumber, const PIE_IntVec_t vector)
 {
 	PIE_registerPieIntHandler(this->pie,groupNumber,subGroupNumber,vector);
+}
+void TMS320F2806::setupGPIOCapture()
+{
+	CPU_disableGlobalInts(centralProcessor);
+	CAP_disableTimestampCounter(capture);
+	CAP_disableInt(capture,CAP_Int_Type_All);
+	CLK_enableEcap1Clock(clock);
+	CAP_setModeCap(capture);
+
+	//capture on falling edges
+	CAP_setCapEvtPolarity(capture, CAP_Event_1,CAP_Polarity_Rising);
+	CAP_setCapEvtPolarity(capture, CAP_Event_2,CAP_Polarity_Falling);
+	CAP_setCapEvtPolarity(capture, CAP_Event_3,CAP_Polarity_Rising);
+	CAP_setCapEvtPolarity(capture, CAP_Event_4,CAP_Polarity_Falling);
+
+	//reset on every capture event (delta-t mode)
+	CAP_setCapEvtReset(capture, CAP_Event_1,CAP_Reset_Enable);
+	CAP_setCapEvtReset(capture, CAP_Event_2,CAP_Reset_Enable);
+	CAP_setCapEvtReset(capture, CAP_Event_3,CAP_Reset_Enable);
+	CAP_setCapEvtReset(capture, CAP_Event_4,CAP_Reset_Enable);
+	CAP_disableSyncIn(capture);
+	CAP_enableCaptureLoad(capture);
+	CAP_setCapContinuous(capture);
+
+	EALLOW;
+	ECap1Regs.ECCTL1.bit.FREE_SOFT = 0b11;
+	EDIS;
+	CAP_enableInt(capture,CAP_Int_Type_CEVT1);
+	CAP_clearInt(capture, CAP_Int_Type_All);
+	CPU_enableInt(centralProcessor, CPU_IntNumber_4);
+	PIE_registerPieIntHandler(pie,PIE_GroupNumber_4,PIE_SubGroupNumber_1,(PIE_IntVec_t) &gpioCaptureInterrupt);	//register the interrupt
+	PIE_enableInt(pie,PIE_GroupNumber_4,PIE_InterruptSource_ECAP1);		//enable the interrupt in the PIE
+	CAP_enableTimestampCounter(capture);
+	CPU_enableGlobalInts(centralProcessor);
 }
 void TMS320F2806::enableCPUInterrupt(CPU_IntNumber_e number)
 {
@@ -188,6 +223,19 @@ uint64_t TMS320F2806::getTicks()
 TMS320F2806::~TMS320F2806()
 {
 
+}
+__interrupt void gpioCaptureInterrupt(void)
+{
+	float cap1 = ((80e6/ECap1Regs.CAP1));
+	float cap2 = ((80e6/ECap1Regs.CAP2));
+	float cap3 = ((80e6/ECap1Regs.CAP3));
+	float cap4 = ((80e6/ECap1Regs.CAP4));
+	dutyCycle = (cap1/(cap1 + cap2) + cap3/(cap3 + cap4))/2;
+	EALLOW;
+	ECap1Regs.ECCLR.all |= CAP_Int_Type_CEVT1;
+	ECap1Regs.ECCLR.all |= CAP_Int_Type_Global;
+	PieCtrlRegs.PIEACK.bit.ACK4 = 1;
+	EDIS;
 }
 __interrupt void timer0Interrupt(void)
 {

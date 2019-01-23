@@ -38,7 +38,6 @@ float aa = 34.5;
 float bb = 34.5;
 float cc = 34.5;
 float Valpha = 0.0;
-
 float kp = 2.5;
 float ki = 0.01;
 float iDes = 0.0;
@@ -68,11 +67,15 @@ float vb = 0.0;
 float mult = 0.1;
 float ia = 0.0;
 float ib = 0.0;
-float offset =	0.1;
+float offset =	0.0;
 float vectorTheta = 0.0;
 bool doStep = false;
 void setupGPIO()
 {
+	digital.setDirection(GPIO_Number_10, GPIO_Direction_Input);
+	digital.setDirection(GPIO_Number_11, GPIO_Direction_Input);
+	digital.setMode(GPIO_Number_11,GPIO_11_Mode_ECAP1);
+	digital.setMode(GPIO_Number_10,GPIO_10_Mode_GeneralPurpose);
 	digital.setMode(GPIO_Number_33,GPIO_33_Mode_GeneralPurpose);
 	digital.setMode(GPIO_Number_34,GPIO_34_Mode_GeneralPurpose);
 	digital.setMode(GPIO_Number_39,GPIO_39_Mode_GeneralPurpose);
@@ -90,6 +93,7 @@ int main(void)
 	processor.setup(PLL_ClkFreq_80_MHz);
 	processor.setupTimer0();
 	setupGPIO();
+	processor.setupGPIOCapture();
 	serial = OSWSerial(processor,digital,SCI_BaudRate_115_2_kBaud);
 	encoder = QuadratureEncoder(processor,digital,ENCODER_CPR);
 	inverter = OSWInverter(processor, digital,80,50,1);
@@ -113,6 +117,7 @@ int main(void)
 
 	while(true)
 	{
+
 		if(calibrate)
 		{
 			motor.recalibrate(encoder);
@@ -128,6 +133,12 @@ int main(void)
 		}
 		//current sensor offset reading
 		int offset = AdcResult.ADCRESULT3>>1;
+
+		/*
+		 * Duty Cycle to use for control
+		 * Comes in on GPIO number 11
+		 */
+		float pin11DutyCycle = dutyCycle;
 
 		//read the phase currents
 		ia = ((int32_t)AdcResult.ADCRESULT0 - offset)*0.0080566;
@@ -165,19 +176,8 @@ int main(void)
 		va = vc  + a * 10.0;
 		vb = vc + b * 10.0 ;
 
-//		Valpha = 7.5*_IQ24toF(SINE);
-//		Vbeta = 7.5*_IQ24toF(COS);
-//		max = MAX(Valpha, Vbeta);
-//		min = MIN(Valpha, Vbeta);
-//
-//		va = vc  + Valpha;
-//		vb = vc + Vbeta;
-//		vc = 4.1666*vc;
-//		va = 4.1666*va;
-//		vb = 4.1666*vb;
 		inverter.modulate(va,vb,vc);
 		taskTable.execute(processor);
-//		//DELAY_US(del);
 
 	}
  }
