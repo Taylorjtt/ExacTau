@@ -16,7 +16,8 @@ OSWInverter::OSWInverter(TMS320F2806 processor, OSWDigital digital,const float_t
 		const uint_least16_t numPwmTicksPerIsrTick)
 {
 
-
+	this->enabled = false;
+	this->_digital = digital;
 	processor.enablePWMClock(PWM_Number_1);
 	processor.enablePWMClock(PWM_Number_2);
 	processor.enablePWMClock(PWM_Number_3);
@@ -27,6 +28,7 @@ OSWInverter::OSWInverter(TMS320F2806 processor, OSWDigital digital,const float_t
 	digital.setDirection(GPIO_Number_3, GPIO_Direction_Output);
 	digital.setDirection(GPIO_Number_4, GPIO_Direction_Output);
 	digital.setDirection(GPIO_Number_5, GPIO_Direction_Output);
+	digital.setDirection(GPIO_Number_50, GPIO_Direction_Output);
 
 	digital.setMode(GPIO_Number_0, GPIO_0_Mode_EPWM1A);
 	digital.setMode(GPIO_Number_1, GPIO_1_Mode_EPWM1B);
@@ -34,6 +36,8 @@ OSWInverter::OSWInverter(TMS320F2806 processor, OSWDigital digital,const float_t
 	digital.setMode(GPIO_Number_3, GPIO_3_Mode_EPWM2B);
 	digital.setMode(GPIO_Number_4, GPIO_4_Mode_EPWM3A);
 	digital.setMode(GPIO_Number_5, GPIO_5_Mode_EPWM3B);
+	digital.setMode(GPIO_Number_50, GPIO_50_Mode_GeneralPurpose);
+	digital.write(GPIO_Number_50,true);
 
 	this->pwmHandle[0] = PWM_init((void *)PWM_ePWM1_BASE_ADDR,sizeof(PWM_Obj));
 	this->pwmHandle[1] = PWM_init((void *)PWM_ePWM2_BASE_ADDR,sizeof(PWM_Obj));
@@ -47,6 +51,7 @@ OSWInverter::OSWInverter(TMS320F2806 processor, OSWDigital digital,const float_t
 	{
 
 		PWM_setCounterMode(this->pwmHandle[count],PWM_CounterMode_UpDown);
+
 	    PWM_enableCounterLoad(this->pwmHandle[count]);
 		PWM_setPeriodLoad(this->pwmHandle[count],PWM_PeriodLoad_Immediate);
 		PWM_setSyncMode(this->pwmHandle[count],PWM_SyncMode_EPWMxSYNC);
@@ -65,6 +70,7 @@ OSWInverter::OSWInverter(TMS320F2806 processor, OSWDigital digital,const float_t
 	    // set to zero initially
 	    PWM_setPeriod(this->pwmHandle[count],0);
 
+
 	    // setup the Counter-Compare Control Register (CMPCTL)
 	    PWM_setLoadMode_CmpA(this->pwmHandle[count],PWM_LoadMode_Zero);
 	    PWM_setLoadMode_CmpB(this->pwmHandle[count],PWM_LoadMode_Zero);
@@ -76,12 +82,14 @@ OSWInverter::OSWInverter(TMS320F2806 processor, OSWDigital digital,const float_t
 		PWM_setActionQual_CntDown_CmpA_PwmA(this->pwmHandle[count], PWM_ActionQual_Set);
 
 	    // setup the Action-Qualifier Output B Register (AQCTLB)
-		PWM_setActionQual_CntUp_CmpB_PwmB(this->pwmHandle[count], PWM_ActionQual_Clear);
-		PWM_setActionQual_CntDown_CmpB_PwmB(this->pwmHandle[count], PWM_ActionQual_Set);
+		PWM_setActionQual_CntUp_CmpA_PwmB(this->pwmHandle[count],PWM_ActionQual_Set);
+		PWM_setActionQual_CntDown_CmpA_PwmB(this->pwmHandle[count],PWM_ActionQual_Clear);
 
 	    // setup the Dead-Band Generator Control Register (DBCTL)
-	    PWM_setDeadBandOutputMode(this->pwmHandle[count],PWM_DeadBandOutputMode_Bypass);
-	    PWM_setDeadBandPolarity(this->pwmHandle[count],PWM_DeadBandPolarity_EPWMxA_EPWMxB);
+	    PWM_setDeadBandOutputMode(this->pwmHandle[count],PWM_DeadBandOutputMode_EPWMxA_Rising_EPWMxB_Falling);
+	    PWM_setDeadBandPolarity(this->pwmHandle[count],PWM_DeadBandPolarity_EPWMxB_Inverted);
+	    PWM_setDeadBandFallingEdgeDelay(this->pwmHandle[count],1);
+	    PWM_setDeadBandRisingEdgeDelay(this->pwmHandle[count],1);
 	    PWM_disableChopping(this->pwmHandle[count]);
 
 	    // setup the Trip Zone Select Register (TZSEL)
@@ -128,6 +136,19 @@ OSWInverter::OSWInverter(TMS320F2806 processor, OSWDigital digital,const float_t
 	processor.enableTbClockSync(true);
 }
 
+void OSWInverter::enable(bool enabled)
+{
+	if(enabled)
+	{
+		this->enabled = true;
+		_digital.write(GPIO_Number_50,false);
+	}
+	else
+	{
+		this->enabled = false;
+		_digital.write(GPIO_Number_50,true);
+	}
+}
 void OSWInverter::modulate(float ah, float bh, float ch)
 {
 	ah = MATH_sat(ah, 100.0,0.0);
@@ -143,8 +164,11 @@ void OSWInverter::modulate(float ah, float bh, float ch)
 	float cCount = this->dutyToCounts*ch;
 
 	PWM_setCmpA(this->pwmHandle[PWM_Number_1],(int)aCount);
+
 	PWM_setCmpA(this->pwmHandle[PWM_Number_2],(int)bCount);
+
 	PWM_setCmpA(this->pwmHandle[PWM_Number_3],(int)cCount);
+
 
 }
 

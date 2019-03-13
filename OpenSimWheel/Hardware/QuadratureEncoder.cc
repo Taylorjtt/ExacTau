@@ -18,7 +18,7 @@ QuadratureEncoder::QuadratureEncoder(TMS320F2806 processor,OSWDigital digital, u
 	this->qepHandle= QEP_init((void *)QEP1_BASE_ADDR, sizeof(QEP_Obj));
 	this->countsPerRev = countsPerRevolution;
 	this->ppr = 4 * countsPerRev;
-	digital.setPullUp(GPIO_Number_21, GPIO_Pullup_Enable);
+	digital.setPullUp(GPIO_Number_21, GPIO_Pullup_Disable);
 	digital.setPullUp(GPIO_Number_23, GPIO_Pullup_Disable);
 
 	digital.setQualification(GPIO_Number_20, GPIO_Qual_Sync);

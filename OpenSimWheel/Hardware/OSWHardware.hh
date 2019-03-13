@@ -46,12 +46,15 @@ public:
 			const uint_least16_t numPwmTicksPerIsrTick);
 	void modulate(float ah, float bh, float ch);
 	PWM_Handle getPWMHandle(PWM_Number_e number);
+	void enable(bool enabled);
 private:
 	PWM_Handle pwmHandle[3];
+	OSWDigital _digital;
 	float dutyToCounts;
 	float ADuty;
 	float BDuty;
 	float CDuty;
+	bool enabled;
 };
 class QuadratureEncoder:public Encoder
 {

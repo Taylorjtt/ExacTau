@@ -33,14 +33,14 @@ void BipolarStepper::zero(QuadratureEncoder &encoder)
 {
 
 	microstepCW(100000);
-	int32_t distance = (int32_t)encoder.getRawTicks() - 8545;
+	int32_t distance = (int32_t)encoder.getRawTicks() - 17471;
 	if(distance < 0)
 	{
 		while(distance < 0)
 		{
 			microstepCCW();
 			DELAY_US(speed);
-			distance = (int32_t)encoder.getRawTicks() - 8545;
+			distance = (int32_t)encoder.getRawTicks() - 17471;
 		}
 	}
 	else
@@ -53,15 +53,13 @@ void BipolarStepper::zero(QuadratureEncoder &encoder)
 		}
 	}
 	DELAY_US(1e6);
-	inv.modulate(65.5,34.5,34.5);
+	inv.modulate(15,0,0);
 	DELAY_US(2e6);
 	encoder.zero();
-	int i = 0;
-	for(i = 0; i < 30; i++)
-	{
-		inv.modulate(65.5-i,34.5,34.5);
-		DELAY_US(5e3);
-	}
+
+	DELAY_US(1e6);
+	inv.modulate(0,0,0);
+
 }
 
 void BipolarStepper::recalibrate(QuadratureEncoder &encoder)

@@ -28,26 +28,29 @@ TaskTable taskTable;
 TorqueControllerHandle torqueController;
 BipolarStepper motor;
 uint32_t delay = 1000;
+float PWMC = 0.0;
+float PWMA = 0.0;
+float PWMB = 0.0;
 
 float thetaE = 0.0;
 bool cw = false;
 _iq theta = 0;
 _iq  SINE = 0;
 _iq  COS = 0;
-float aa = 34.5;
-float bb = 34.5;
-float cc = 34.5;
+float aa = 0;
+float bb = 0;
+float cc = 0;
 float Valpha = 0.0;
 float kp = 2.5;
-float ki = 0.01;
+float ki = 0.0;
 float iDes = 0.0;
 float qErr = 0.0;
 float qi = 0.0;
 float qiMin = -5.0;
 float qiMax = 5.0;
 float di = 0.0;
-float diMin = -5.0;
-float diMax = 5.0;
+float diMin = -10.0;
+float diMax = 10.0;
 float dErr = 0.0;
 float d = 0.0;
 float q = 0.0;
@@ -56,8 +59,9 @@ float dOut = 0.0;
 float a = 0.0;
 float b = 0.0;
 bool calibrate = false;
-float minCurrent = -7.0;
-float maxCurrent = 7.0;
+float maxCurrent = 20;
+float minCurrent = -maxCurrent;
+
 float Vbeta = 0.0;
 float max = 0.0;
 float min = 0.0;
@@ -70,6 +74,8 @@ float ib = 0.0;
 float offset =	0.0;
 float vectorTheta = 0.0;
 bool doStep = false;
+uint32_t ppr = 20000;
+int32_t encoderOffset = 0;
 void setupGPIO()
 {
 	digital.setDirection(GPIO_Number_10, GPIO_Direction_Input);
@@ -82,10 +88,12 @@ void setupGPIO()
 	digital.setDirection(GPIO_Number_33,GPIO_Direction_Output);
 	digital.setDirection(GPIO_Number_34,GPIO_Direction_Output);
 	digital.setDirection(GPIO_Number_39,GPIO_Direction_Output);
+	digital.setDirection(GPIO_Number_27,GPIO_Direction_Output);
+	digital.setMode(GPIO_Number_27,GPIO_27_Mode_GeneralPurpose);
 }
 
 int main(void)
- {
+  {
 
 	torqueController = (TorqueControllerHandle)malloc(sizeof(TorqueController_Obj));
 	processor = TMS320F2806();
@@ -97,8 +105,7 @@ int main(void)
 	serial = OSWSerial(processor,digital,SCI_BaudRate_115_2_kBaud);
 	encoder = QuadratureEncoder(processor,digital,ENCODER_CPR);
 	inverter = OSWInverter(processor, digital,80,50,1);
-	spi = Spi(processor, digital);
-	driver = DRV8301(processor, digital,spi);
+
 	currentSensor = CurrentSensor(processor,digital,inverter);
 	torqueController = TorqueController_Constructor((void *)torqueController, sizeof(TorqueController_Obj));
 	serialTask =  SerialSendTask(FREQ_100HZ,0,serial,digital);
@@ -112,37 +119,32 @@ int main(void)
 	park.Sine = 0;
 	park.Ds = 0;
 
+	inverter.enable(true);
 	motor = BipolarStepper(inverter);
+
 	motor.zero(encoder);
+	encoderOffset = EQep1Regs.QPOSCNT;
 
 	while(true)
 	{
-
-		if(calibrate)
-		{
-			motor.recalibrate(encoder);
-			calibrate = false;
-		}
+//
+//		int shifted = (EQep1Regs.QPOSCNT - encoderOffset);
+//		if(shifted < 0)
+//		{
+//			shifted = ppr + shifted;
+//		}
 		thetaE = fmod(((float)encoder.getShiftedTicks() * 0.0157),MATH_TWO_PI) ;
-		if(cw){
-			vectorTheta = fmod(thetaE - offset,MATH_TWO_PI);
-		}
-		else
-		{
-			vectorTheta = fmod(thetaE + offset,MATH_TWO_PI);
-		}
-		//current sensor offset reading
+		//thetaE = fmod(((float)shifted * 0.0157),MATH_TWO_PI) ;
+		vectorTheta = fmod(thetaE,MATH_TWO_PI);
+
 		int offset = AdcResult.ADCRESULT3>>1;
 
-		/*
-		 * Duty Cycle to use for control
-		 * Comes in on GPIO number 11
-		 */
-		float pin11DutyCycle = dutyCycle;
+
+		iDes = -2*(dutyCycle - 0.5)*5.0;
 
 		//read the phase currents
-		ia = ((int32_t)AdcResult.ADCRESULT0 - offset)*0.0080566;
-		ib = ((int32_t)AdcResult.ADCRESULT1 - offset)*0.0080566;
+		ia = -((int32_t)AdcResult.ADCRESULT0 - offset)*0.0080566;
+		ib = -((int32_t)AdcResult.ADCRESULT1 - offset)*0.0080566;
 
 		theta = _IQ24(vectorTheta);
 		SINE = _IQ24sin(theta);
@@ -156,28 +158,60 @@ int main(void)
 		q = _IQ24toF(park.Qs);
 		qErr = iDes - q;
 		dErr = 0.0-d;
-		qi = MATH_sat(ki*(qErr) + qi,qiMax,qiMin);
-		di = MATH_sat(ki*(dErr) + di,diMax,diMin);
+		qi = qErr*ki;
+		di = dErr*ki;
+		if (qi < qiMin)
+			qi = qiMin;
+		if (qi > qiMax)
+			qi = qiMax;
+		if (di < diMin)
+			di = diMin;
+		if (di > diMax)
+			di = diMax;
+
 		qOut = kp * qErr + qi;
 		dOut = kp * dErr + di;
-		qOut = MATH_sat(qOut,maxCurrent,minCurrent);
-		dOut = MATH_sat(dOut,maxCurrent,minCurrent);
+		if (qOut < minCurrent)
+			a = minCurrent;
+		if (qOut > maxCurrent)
+			a = maxCurrent;
+		if (dOut < minCurrent)
+			b = minCurrent;
+		if (dOut > maxCurrent)
+			b = maxCurrent;
 		park.Qs = _IQ24(qOut);
 		park.Ds = _IQ24(dOut);
 
 		IPARK_MACRO(park);
 		a = _IQ24toF(park.Alpha);
 		b = _IQ24toF(park.Beta);
-		a = MATH_sat(a,maxCurrent,minCurrent);
-		b = MATH_sat(b,maxCurrent,minCurrent);
+
+		if (a < minCurrent)
+			a = minCurrent;
+		if (a > maxCurrent)
+			a = maxCurrent;
+		if (b < minCurrent)
+			b = minCurrent;
+		if (b > maxCurrent)
+			b = maxCurrent;
+
 		max = MAX(a, b);
 		min = MIN(a, b);
-		vc =  (0.5 * (7.0 - (max-min)))*2.91 + 28;
-		va = vc  + a * 10.0;
-		vb = vc + b * 10.0 ;
 
-		inverter.modulate(va,vb,vc);
-		taskTable.execute(processor);
+		GpioDataRegs.GPATOGGLE.bit.GPIO27 = 1;
+
+		PWMC = 50*(1-((max/maxCurrent - min/maxCurrent)));
+		PWMA = PWMC + (a/maxCurrent)*100;
+		PWMB = PWMC + (b/maxCurrent)*100;
+
+		float aCount = 20*PWMA;
+		float bCount = 20*PWMB;
+		float cCount = 20*PWMC;
+
+		EPwm1Regs.CMPA.half.CMPA = (uint16_t)aCount;
+		EPwm2Regs.CMPA.half.CMPA = (uint16_t)bCount;
+		EPwm3Regs.CMPA.half.CMPA = (uint16_t)cCount;
+
 
 	}
  }

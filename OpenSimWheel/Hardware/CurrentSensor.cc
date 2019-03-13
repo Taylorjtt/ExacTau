@@ -32,7 +32,7 @@ CurrentSensor::CurrentSensor(TMS320F2806 processor, OSWDigital digital, OSWInver
 	ADC_enableNoOverlapMode(this->adc);
 
 	//set up the Coil A start of conversion
-	ADC_setSocChanNumber(this->adc,ADC_SocNumber_0, ADC_SocChanNumber_A4);
+	ADC_setSocChanNumber(this->adc,ADC_SocNumber_0, ADC_SocChanNumber_A0);
 	ADC_setSocSampleDelay(this->adc, ADC_SocNumber_0, ADC_SocSampleDelay_35_cycles);
 	ADC_setSocTrigSrc(this->adc, ADC_SocNumber_0, ADC_SocTrigSrc_EPWM1_ADCSOCA);
 
@@ -43,7 +43,7 @@ CurrentSensor::CurrentSensor(TMS320F2806 processor, OSWDigital digital, OSWInver
 
 
 	//set up the Coil B start of conversion
-	ADC_setSocChanNumber(this->adc,ADC_SocNumber_1, ADC_SocChanNumber_B3);
+	ADC_setSocChanNumber(this->adc,ADC_SocNumber_1, ADC_SocChanNumber_B0);
 	ADC_setSocSampleDelay(this->adc, ADC_SocNumber_1, ADC_SocSampleDelay_35_cycles);
 	ADC_setSocTrigSrc(this->adc, ADC_SocNumber_1, ADC_SocTrigSrc_EPWM2_ADCSOCA);
 
@@ -53,7 +53,7 @@ CurrentSensor::CurrentSensor(TMS320F2806 processor, OSWDigital digital, OSWInver
 	PWM_setSocAPeriod(inverter.getPWMHandle(PWM_Number_2), PWM_SocPeriod_FirstEvent);
 
 	//set up the Coil C start of conversion
-	ADC_setSocChanNumber(this->adc,ADC_SocNumber_2, ADC_SocChanNumber_A3);
+	ADC_setSocChanNumber(this->adc,ADC_SocNumber_2, ADC_SocChanNumber_A1);
 	ADC_setSocSampleDelay(this->adc, ADC_SocNumber_2, ADC_SocSampleDelay_35_cycles);
 	ADC_setSocTrigSrc(this->adc, ADC_SocNumber_2, ADC_SocTrigSrc_EPWM3_ADCSOCA);
 
@@ -63,7 +63,7 @@ CurrentSensor::CurrentSensor(TMS320F2806 processor, OSWDigital digital, OSWInver
 	PWM_setSocAPeriod(inverter.getPWMHandle(PWM_Number_3), PWM_SocPeriod_FirstEvent);
 
 	//set up the Vref start of conversion
-	ADC_setSocChanNumber(this->adc,ADC_SocNumber_3, ADC_SocChanNumber_B7);
+	ADC_setSocChanNumber(this->adc,ADC_SocNumber_3, ADC_SocChanNumber_B6);
 	ADC_setSocSampleDelay(this->adc, ADC_SocNumber_3, ADC_SocSampleDelay_64_cycles);
 	ADC_setSocTrigSrc(this->adc, ADC_SocNumber_3, ADC_SocTrigSrc_EPWM3_ADCSOCA);
 }
