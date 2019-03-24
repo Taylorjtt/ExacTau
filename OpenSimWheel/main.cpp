@@ -41,7 +41,7 @@ float aa = 0;
 float bb = 0;
 float cc = 0;
 float Valpha = 0.0;
-float kp = 2.5;
+float kp = 2.75;
 float ki = 0.0;
 float iDes = 0.0;
 float qErr = 0.0;
@@ -59,7 +59,7 @@ float dOut = 0.0;
 float a = 0.0;
 float b = 0.0;
 bool calibrate = false;
-float maxCurrent = 20;
+float maxCurrent = 9.0;
 float minCurrent = -maxCurrent;
 
 float Vbeta = 0.0;
@@ -93,7 +93,7 @@ void setupGPIO()
 }
 
 int main(void)
-  {
+ {
 
 	torqueController = (TorqueControllerHandle)malloc(sizeof(TorqueController_Obj));
 	processor = TMS320F2806();
@@ -134,13 +134,12 @@ int main(void)
 //			shifted = ppr + shifted;
 //		}
 		thetaE = fmod(((float)encoder.getShiftedTicks() * 0.0157),MATH_TWO_PI) ;
-		//thetaE = fmod(((float)shifted * 0.0157),MATH_TWO_PI) ;
 		vectorTheta = fmod(thetaE,MATH_TWO_PI);
 
 		int offset = AdcResult.ADCRESULT3>>1;
 
 
-		iDes = -2*(dutyCycle - 0.5)*5.0;
+		iDes = -2*(dutyCycle - 0.5)*9.0;
 
 		//read the phase currents
 		ia = -((int32_t)AdcResult.ADCRESULT0 - offset)*0.0080566;
@@ -171,36 +170,39 @@ int main(void)
 
 		qOut = kp * qErr + qi;
 		dOut = kp * dErr + di;
-		if (qOut < minCurrent)
-			a = minCurrent;
-		if (qOut > maxCurrent)
-			a = maxCurrent;
-		if (dOut < minCurrent)
-			b = minCurrent;
-		if (dOut > maxCurrent)
-			b = maxCurrent;
+
+		if (qOut < minCurrent*.31)
+			qOut = minCurrent*.31;
+		if (qOut > maxCurrent*.31)
+			qOut = maxCurrent*.31;
+		if (dOut < minCurrent*.31)
+			dOut = minCurrent*.31;
+		if (dOut > maxCurrent*.31)
+			dOut = maxCurrent*.31;
+
 		park.Qs = _IQ24(qOut);
 		park.Ds = _IQ24(dOut);
 
 		IPARK_MACRO(park);
+
 		a = _IQ24toF(park.Alpha);
 		b = _IQ24toF(park.Beta);
 
-		if (a < minCurrent)
-			a = minCurrent;
-		if (a > maxCurrent)
-			a = maxCurrent;
-		if (b < minCurrent)
-			b = minCurrent;
-		if (b > maxCurrent)
-			b = maxCurrent;
+		if (a < minCurrent*.31)
+			a = minCurrent*.31;
+		if (a > maxCurrent*.31)
+			a = maxCurrent*.31;
+		if (b < minCurrent*.31)
+			b = minCurrent*.31;
+		if (b > maxCurrent*.31)
+			b = maxCurrent*.31;
 
 		max = MAX(a, b);
 		min = MIN(a, b);
 
 		GpioDataRegs.GPATOGGLE.bit.GPIO27 = 1;
 
-		PWMC = 50*(1-((max/maxCurrent - min/maxCurrent)));
+		PWMC = 0.5*(100-((max/maxCurrent - min/maxCurrent)*100));
 		PWMA = PWMC + (a/maxCurrent)*100;
 		PWMB = PWMC + (b/maxCurrent)*100;
 
