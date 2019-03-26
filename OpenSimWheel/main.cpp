@@ -50,11 +50,11 @@ float ki = 0.0;
 float iDes = 0.0;
 float qErr = 0.0;
 float qi = 0.0;
-float qiMin = -5.0;
-float qiMax = 5.0;
+float qiMin = -2.0;
+float qiMax = -qiMin;
 float di = 0.0;
-float diMin = -10.0;
-float diMax = 10.0;
+float diMin = qiMin;
+float diMax = qiMax;
 float dErr = 0.0;
 float d = 0.0;
 float q = 0.0;
@@ -62,24 +62,22 @@ float qOut = 0.0;
 float dOut = 0.0;
 float a = 0.0;
 float b = 0.0;
-bool calibrate = false;
+
 float maxCurrent = 9.0;
 float minCurrent = -maxCurrent;
+float minFOCCurrent = minCurrent*.31;
+float maxFOCCurrent = maxCurrent*0.31;
 
-float Vbeta = 0.0;
 float max = 0.0;
 float min = 0.0;
 float vc =  0.0;
 float va = 0.0;
 float vb = 0.0;
-float mult = 0.1;
 float ia = 0.0;
 float ib = 0.0;
-float offset =	0.0;
 float vectorTheta = 0.0;
-bool doStep = false;
-uint32_t ppr = 20000;
-int32_t encoderOffset = 0;
+
+
 void setupGPIO()
 {
 	digital.setDirection(GPIO_Number_10, GPIO_Direction_Input);
@@ -127,7 +125,6 @@ int main(void)
 	motor = BipolarStepper(inverter);
 
 	motor.zero(encoder);
-	encoderOffset = EQep1Regs.QPOSCNT;
 
 	while(true)
 	{
@@ -138,7 +135,7 @@ int main(void)
 		int offset = AdcResult.ADCRESULT3>>1;
 
 
-		//iDes = -2*(dutyCycle - 0.5)*9.0;
+		iDes = -2*(dutyCycle - 0.5)*9.0;
 
 		//read the phase currents
 		ia = -((int32_t)AdcResult.ADCRESULT0 - offset)*0.0080566;
@@ -156,8 +153,8 @@ int main(void)
 		q = _IQ24toF(park.Qs);
 		qErr = iDes - q;
 		dErr = 0.0-d;
-		qi = qErr*ki;
-		di = dErr*ki;
+		qi = qErr*ki + qi;
+		di = dErr*ki + di;
 		if (qi < qiMin)
 			qi = qiMin;
 		if (qi > qiMax)
@@ -170,14 +167,14 @@ int main(void)
 		qOut = kp * qErr + qi;
 		dOut = kp * dErr + di;
 
-		if (qOut < minCurrent*.31)
-			qOut = minCurrent*.31;
-		if (qOut > maxCurrent*.31)
-			qOut = maxCurrent*.31;
-		if (dOut < minCurrent*.31)
-			dOut = minCurrent*.31;
-		if (dOut > maxCurrent*.31)
-			dOut = maxCurrent*.31;
+		if (qOut < minFOCCurrent)
+			qOut = minFOCCurrent;
+		if (qOut > maxFOCCurrent)
+			qOut = maxFOCCurrent;
+		if (dOut < minFOCCurrent)
+			dOut = minFOCCurrent;
+		if (dOut > maxFOCCurrent)
+			dOut = maxFOCCurrent;
 
 		park.Qs = _IQ24(qOut);
 		park.Ds = _IQ24(dOut);
@@ -187,14 +184,14 @@ int main(void)
 		a = _IQ24toF(park.Alpha);
 		b = _IQ24toF(park.Beta);
 
-		if (a < minCurrent*.31)
-			a = minCurrent*.31;
-		if (a > maxCurrent*.31)
-			a = maxCurrent*.31;
-		if (b < minCurrent*.31)
-			b = minCurrent*.31;
-		if (b > maxCurrent*.31)
-			b = maxCurrent*.31;
+		if (a < minFOCCurrent)
+			a = minFOCCurrent;
+		if (a > maxFOCCurrent)
+			a = maxFOCCurrent;
+		if (b < minFOCCurrent)
+			b = minFOCCurrent;
+		if (b > maxFOCCurrent)
+			b = maxFOCCurrent;
 
 		max = MAX(a, b);
 		min = MIN(a, b);
