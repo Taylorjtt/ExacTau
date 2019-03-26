@@ -14,6 +14,10 @@ extern "C"
 
 
 #define ENCODER_CPR 5000
+#define ENCODER_PPR ENCODER_CPR*4
+#define STEPPER_ROTOR_TEETH 50
+#define TICKS_TO_ELECTRICAL_ANGLE MATH_TWO_PI/(ENCODER_PPR/STEPPER_ROTOR_TEETH)
+
 PARK park;
 TMS320F2806 processor;
 OSWDigital digital;
@@ -127,19 +131,14 @@ int main(void)
 
 	while(true)
 	{
-//
-//		int shifted = (EQep1Regs.QPOSCNT - encoderOffset);
-//		if(shifted < 0)
-//		{
-//			shifted = ppr + shifted;
-//		}
-		thetaE = fmod(((float)encoder.getShiftedTicks() * 0.0157),MATH_TWO_PI) ;
+
+		thetaE = fmod(((float)encoder.getShiftedTicks() * TICKS_TO_ELECTRICAL_ANGLE),MATH_TWO_PI) ;
 		vectorTheta = fmod(thetaE,MATH_TWO_PI);
 
 		int offset = AdcResult.ADCRESULT3>>1;
 
 
-		iDes = -2*(dutyCycle - 0.5)*9.0;
+		//iDes = -2*(dutyCycle - 0.5)*9.0;
 
 		//read the phase currents
 		ia = -((int32_t)AdcResult.ADCRESULT0 - offset)*0.0080566;
