@@ -53,9 +53,10 @@ void BipolarStepper::zero(QuadratureEncoder &encoder)
 		}
 	}
 	DELAY_US(1e6);
-	inv.modulate(5.0,0,0);
-	DELAY_US(2e6);
+	inv.modulate(0,10,10);
+	DELAY_US(500000);
 	encoder.zero();
+	DELAY_US(500000);
 	inv.modulate(0,0,0);
 
 }
