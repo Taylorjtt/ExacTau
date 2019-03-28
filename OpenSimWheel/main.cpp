@@ -1,16 +1,17 @@
 
 #include "Hardware/OSWHardware.hh"
 #include "Hardware/TMS320F2806.hh"
-#include "Scheduler/TaskTable.h"
 #include "Hardware/BipolarStepper.h"
 extern "C"
 {
-	#include "control/TorqueController.h"
+
 	#include "Math/IQmathLib.h"
+	#include "Math/clarke.h"
+	#include "Math/park.h"
+	#include "Math/ipark.h"
 
 }
 #include "Math/IQmathCPP.h"
-#include "Scheduler/SerialSendTask.h"
 
 
 #define ENCODER_CPR 5000
@@ -21,30 +22,18 @@ extern "C"
 PARK park;
 TMS320F2806 processor;
 OSWDigital digital;
-OSWSerial serial;
 QuadratureEncoder encoder;
 OSWInverter inverter;
-DRV8301 driver;
-Spi spi;
 CurrentSensor currentSensor;
-SerialSendTask serialTask;
-TaskTable taskTable;
-TorqueControllerHandle torqueController;
 BipolarStepper motor;
-uint32_t delay = 1000;
+
 float PWMC = 0.0;
 float PWMA = 0.0;
 float PWMB = 0.0;
-
 float thetaE = 0.0;
-bool cw = false;
 _iq theta = 0;
 _iq  SINE = 0;
 _iq  COS = 0;
-float aa = 0;
-float bb = 0;
-float cc = 0;
-float Valpha = 0.0;
 float kp = 2.75;
 float ki = 0.05;
 float iDes = 0.0;
@@ -65,7 +54,7 @@ float b = 0.0;
 
 float maxCurrent = 9.0;
 float minCurrent = -maxCurrent;
-float minFOCCurrent = minCurrent*.31;
+float minFOCCurrent = minCurrent*0.31;
 float maxFOCCurrent = maxCurrent*0.31;
 
 float max = 0.0;
@@ -97,21 +86,16 @@ void setupGPIO()
 int main(void)
  {
 
-	torqueController = (TorqueControllerHandle)malloc(sizeof(TorqueController_Obj));
 	processor = TMS320F2806();
 	digital = OSWDigital();
 	processor.setup(PLL_ClkFreq_80_MHz);
 	processor.setupTimer0();
 	setupGPIO();
 	processor.setupGPIOCapture();
-	serial = OSWSerial(processor,digital,SCI_BaudRate_115_2_kBaud);
 	encoder = QuadratureEncoder(processor,digital,ENCODER_CPR);
 	inverter = OSWInverter(processor, digital,80,50,1);
-
 	currentSensor = CurrentSensor(processor,digital,inverter);
-	torqueController = TorqueController_Constructor((void *)torqueController, sizeof(TorqueController_Obj));
-	serialTask =  SerialSendTask(FREQ_100HZ,0,serial,digital);
-	taskTable.addTask(serialTask);
+
 
 	park.Alpha = 0;
 	park.Angle = 0;
@@ -123,7 +107,6 @@ int main(void)
 
 	inverter.enable(true);
 	motor = BipolarStepper(inverter);
-
 	motor.zero(encoder);
 
 	while(true)
@@ -135,7 +118,7 @@ int main(void)
 		int offset = AdcResult.ADCRESULT3>>1;
 
 
-		iDes = -2*(dutyCycle - 0.5)*9.0;
+		iDes = -2*(dutyCycle - 0.5)*maxCurrent;
 
 		//read the phase currents
 		ia = -((int32_t)AdcResult.ADCRESULT0 - offset)*0.0080566;
