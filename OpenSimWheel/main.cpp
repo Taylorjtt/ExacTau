@@ -31,11 +31,16 @@ float PWMC = 0.0;
 float PWMA = 0.0;
 float PWMB = 0.0;
 float thetaE = 0.0;
+float thetaComp = 0.0;
 
 float kp = 2.5;			//proportional gain
 float kp_mirror = kp;	//mirror, do not edit;
-float ki = 0.001;		//integral gain
+float ki = 0.05;		//integral gain
 float ki_mirror = ki; 	//mirror, do not edit
+//cogging Compensation
+float CCamp = 0.1;
+float CCamp_mirror = CCamp; 	//mirror, do not edit
+
 
 float iDes = 0.0;
 float qErr = 0.0;
@@ -104,7 +109,9 @@ _iq iq_min = _IQ24(0.0);
 _iq iq_one_half = _IQ24(0.5);
 _iq iq_one = _IQ24(1.0);
 _iq iq_oneHundred = _IQ24(100.0);
-
+_iq iq_CCamp = _IQ24(CCamp);
+_iq iq_CCTerm = _IQ24(0);
+float CompN = 1.1;
 
 void setupGPIO()
 {
@@ -136,6 +143,7 @@ int main(void)
 	currentSensor = CurrentSensor(processor,digital,inverter);
 
 
+
 	park.Alpha = 0;
 	park.Angle = 0;
 	park.Beta = 0;
@@ -156,20 +164,25 @@ int main(void)
 			kp_mirror = kp;
 			iq_KP = _IQ24(kp);
 		}
-		if(ki != ki_mirror)
+		if(kp != kp_mirror)
 		{
-			ki_mirror = ki;
-			iq_KI = _IQ24(ki);
+			kp_mirror = kp;
+			iq_KP = _IQ24(kp);
+		}
+		if(CCamp != CCamp_mirror)
+		{
+			CCamp_mirror = CCamp;
+			iq_CCamp = _IQ24(CCamp);
 		}
 
 		thetaE = fmod(((float)encoder.getShiftedTicks() * TICKS_TO_ELECTRICAL_ANGLE),MATH_TWO_PI) ;
-
+		thetaComp = fmod(CompN*thetaE,MATH_TWO_PI);
 
 		int offset = AdcResult.ADCRESULT3>>1;
 
 
 		//iDes = -2*(dutyCycle - 0.5)*maxCurrent;
-		iq_iDes = _IQ24(iDes);
+		iq_iDes = _IQ24(iDes) + _IQmpy(_IQsin(_IQ24(thetaComp)),iq_CCamp);
 
 		//read the phase currents
 		ia = -((int32_t)AdcResult.ADCRESULT0 - offset)*0.0080566;
@@ -233,6 +246,30 @@ int main(void)
 		PWMA = _IQ24toF(iq_PWMA);
 		PWMB = _IQ24toF(iq_PWMB);
 		PWMC = _IQ24toF(iq_PWMC);
+		if(PWMA < 0)
+		{
+			PWMA = 0;
+		}
+		if(PWMA > 73)
+		{
+			PWMA = 73;
+		}
+		if(PWMB < 0)
+		{
+			PWMB = 0;
+		}
+		if(PWMB > 73)
+		{
+			PWMB = 73;
+		}
+		if(PWMC < 31)
+		{
+			PWMC = 31;
+		}
+		if(PWMC > 50)
+		{
+			PWMC = 50;
+		}
 
 		aCount = 20*PWMA;
 		bCount = 20*PWMB;
