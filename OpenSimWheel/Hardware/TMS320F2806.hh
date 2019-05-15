@@ -7,6 +7,7 @@
 
 #ifndef HARDWARE_TMS320F2806_HH_
 #define HARDWARE_TMS320F2806_HH_
+
 #include <stdlib.h>
 #include "../common/DSP28x_Project.h"
 #include "../Util/memCopy.h"
@@ -36,6 +37,7 @@
 #define getRefTempOffset() (*(int16_t (*)(void))0x3D7EA2)()
 #define HAL_PWM_DBFED_CNT         1
 #define HAL_PWM_DBRED_CNT         1
+
 extern volatile uint64_t ticks;
 extern volatile float dutyCycle;
 class TMS320F2806

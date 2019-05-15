@@ -174,11 +174,11 @@ SECTIONS
    IQmathTables     : > IQTABLES,   PAGE = 0, TYPE = NOLOAD
    IQmathTables2    : > IQTABLES2,  PAGE = 0, TYPE = NOLOAD
    {
-        IQmath_fpu32.lib<IQNexpTable.obj> (IQmathTablesRam)
+       ../IQmath_fpu32.lib<IQNexpTable.obj> (IQmathTablesRam)
    }
    IQmathTables3    :> IQTABLES3,   PAGE = 0, type = NOLOAD
    {
-       IQmath_fpu32.lib<IQNasinTable.obj> (IQmathTablesRam)
+       ../IQmath_fpu32.lib<IQNasinTable.obj> (IQmathTablesRam)
    }
 
    /* Allocate FPU math areas: */

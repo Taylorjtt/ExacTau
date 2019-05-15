@@ -161,7 +161,7 @@ void TMS320F2806::setup(PLL_ClkFreq_e frequency)
    FLASH_setStandbyWaitCount(this->flash,FLASH_STANDBY_WAIT_COUNT_DEFAULT);
 
    FLASH_setActiveWaitCount(this->flash,FLASH_ACTIVE_WAIT_COUNT_DEFAULT);
-
+   __asm(" RPT #7 || NOP");
    DELAY_US(100);
    CPU_enableGlobalInts(this->centralProcessor);
 

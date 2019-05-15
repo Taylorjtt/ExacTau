@@ -2,6 +2,7 @@
 #include "Hardware/OSWHardware.hh"
 #include "Hardware/TMS320F2806.hh"
 #include "Hardware/BipolarStepper.h"
+
 extern "C"
 {
 
@@ -9,6 +10,7 @@ extern "C"
 	#include "Math/clarke.h"
 	#include "Math/park.h"
 	#include "Math/ipark.h"
+
 
 }
 #include "Math/IQmathCPP.h"
@@ -144,6 +146,7 @@ int main(void)
 
 
 
+
 	park.Alpha = 0;
 	park.Angle = 0;
 	park.Beta = 0;
@@ -180,9 +183,9 @@ int main(void)
 
 		int offset = AdcResult.ADCRESULT3>>1;
 
-
-		//iDes = -2*(dutyCycle - 0.5)*maxCurrent;
-		iq_iDes = _IQ24(iDes) + _IQmpy(_IQsin(_IQ24(thetaComp)),iq_CCamp);
+		//read the duty cycle from the STM and convert that to a desired current
+		iDes = 2*(dutyCycle - 0.5)*maxCurrent;
+		iq_iDes = _IQ24(iDes);
 
 		//read the phase currents
 		ia = -((int32_t)AdcResult.ADCRESULT0 - offset)*0.0080566;
